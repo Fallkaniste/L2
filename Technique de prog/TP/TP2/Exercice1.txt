@@ -1,0 +1,70 @@
+#include <stdio.h>
+
+	struct book_s
+	{
+		char name[100];
+		char authors[10][100];
+		int nauthors;
+		char publisher[100];
+		int year;
+		long int isbn;
+	};
+	enum day_e{
+		monday,tuesday,wednesday,thursday,friday,saturday,sunday
+	};
+	struct library_s{
+		char name[100];
+		int ndays;
+		enum day_e days[7];
+		struct book_s books[100];
+		int nbooks;
+	};
+
+int main(){
+
+	struct library_s Sciences_Library={
+		"Sciences Library",
+		4,
+		{monday,thursday,wednesday,thursday},
+		{
+		{//livre N°1
+			"The C Programming Language",
+			{//auteurs
+				"Brian W. Kernighan","Dennis M. Ritchie"
+			},
+			2,"rentice Hall",1988,9780131103627
+		},
+		{//livre N°2
+			"C: The Complete Reference",
+			{//auteurs
+				"Herbert Schildt"
+			},
+			1,"McGraw-Hill Education",2000,9780072121247
+		}
+
+		},2,
+	};
+	struct library_s Novel_Library={
+		"Novel Library",
+		4,
+		{thursday,wednesday,thursday,friday},
+		{
+		{//livre N°1
+			"Harry Potter and the Philosopher’s Stone",
+			{//auteurs
+				"J. K. Rowling"
+			},
+			1,"Bloomsbury",1997,9780747532699
+		},
+		{//livre N°2
+			"Harry Potter and the Chamber of Secret",
+			{//auteurs
+				"J. K. Rowling"
+			},
+			1,"Bloomsbury",1998,9780747538493
+
+		},
+	},2,
+
+	};
+}
