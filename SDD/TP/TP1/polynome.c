@@ -1,5 +1,5 @@
 #include <polynome.h>
-
+//test
 POLYNOME Nul()
 {
 	POLYNOME p;
