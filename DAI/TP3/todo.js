@@ -1,5 +1,5 @@
 "use strict";  // le mode strict impose une version plus exigente de Javascript
-//test
+
 // Demande le lancement de l'exécution quand toute la page Web sera chargée
 window.addEventListener('load', go);
 
