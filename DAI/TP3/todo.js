@@ -17,7 +17,7 @@ function go() {
   model.init({
     items:  [{text: 'À faire hier'        , done:true },
             {text: 'À faire aujourd\'hui', done:false},
-            {text: 'À faire demain'      , done:false},]
+            {text: 'À faire demain'      , done:false}]
   });
 
   // Appelle l'affichage de l'application.
@@ -28,7 +28,9 @@ function go() {
 // Actions appelées dans le code HTML quand des événements surviennent
 //
 actions = {
-
+  doneItem(data) {
+    model.samPresent({doneItem: data.index});
+  },
   // Demande au modèle d'ajouter un item à son tableau de tâches à faire.
   // Lui envoit pour cela un objet avec une propriété 'inputField' qui
   // désigne l'id de l'élément qui contient le texte à ajouter.
@@ -39,6 +41,15 @@ actions = {
         newItem: text
       });
     }
+  },
+
+  removeDoneItems(data) {
+  let activeItems = model.items.filter((v,i,a)=>{
+    if (v.done == false) {
+        return(v);
+    }
+  });
+  model.samPresent({removedDoneItems: activeItems});
   }
 
 };
@@ -48,6 +59,7 @@ actions = {
 model = {
   items: [],
   done: false,
+  isEditMode: false,
 
   init(data) {
     this.items = data.items || [];
@@ -64,12 +76,20 @@ model = {
     // Si l'objet data possède la propriété 'newItem'
     // alors on ajoute ce nouvel item au tableau de tâches de model.
     if (has.call(data, 'newItem')) {
-      items : [{ text: data.newItem, done: false }];
+      var items = { text: data.newItem, done: false };
       this.items.push(items);
 
       console.log(this.items.length+' élément(s) : '+ this.items); // TODO: pourra être supprimé...
     }
 
+     if (has.call(data, 'doneItem')) {
+      let index = data.doneItem;
+      this.items[index].done = !this.items[index].done;  // inversion du booléen !
+      console.log(index+' : '+this.items[index].done);   // pour débug...
+    }
+    if (has.call(data, 'removedDoneItems')) {
+      this.items = data.removedDoneItems;
+    }
     // Demande à l'état de l'application de prendre en compte la modification
     // du modèle
     state.samUpdate(this);
@@ -81,7 +101,15 @@ model = {
 state = {
 
   samUpdate(model) {
+  //  if(model.items.filter(v => v.done == true)).length > 0){this.hasDoneItems = true};
+    let test = model.items.filter(v => v.done == true);
+    if (test.length > 0 ) {
+      this.hasDoneItems = true;
+    }else {
+      this.hasDoneItems = false;
+    }
     this.samRepresent(model);
+
     // this.samNap(model);
   },
 
@@ -94,7 +122,8 @@ state = {
 
     // Appel l'affichage du HTML généré.
     view.samDisplay(representation);
-  }
+  },
+
 };
 //--------------------------------------------------------------------- View ---
 // Génération de portions en HTML et affichage
@@ -110,19 +139,45 @@ view = {
   // Renvoit le HTML
   normalInterface(model, state) {
     let li_items = this.listItems(model,state);
+    let li_bouton = this.boutonsValue(state);
+    let li_boutonEditText = this.boutonsEditValue(model);
     return `
+     <style type="text/css">
+	li.done {
+  	text-decoration: line-through;
+  	}
+	</style>
       <h2> Todo List </h2>
       <input id="inputText" type="text" />
       <button onclick="actions.addItem( {e: event, inputField:'inputText'} )">Todo</button>
       <ul>
       	${li_items}
       </ul>
+        ${li_bouton} <button>${li_boutonEditText}</button>
       `;
   },
-
+  boutonsEditValue(state){
+    if(model.isEditMode) {
+      return('Edit Mode')
+    }else {
+      return('Todo Mode')
+    }
+  },
+  boutonsValue(state){
+    if (state.hasDoneItems) {
+      return('<button onclick="actions.removeDoneItems()">Remove done items</button>')
+    }else {
+      return('<button disabled="disabled">Remove done items</button>')
+    }
+  },
   listItems(model, state) {
     console.log(model.items)
-    let li_items = model.items.map((v,i,a)=> '<li>'+ v.text+'</li>').join('\n');
+    let li_items = model.items.map((v,i,a)=>{
+    	let raye = '';
+    	if (v.done) {raye = 'class="done"';}
+    	return('<li onclick="actions.doneItem({index:'+i+'})" '+raye+'>'+ v.text+'</li>');
+
+    }).join('\n');
     return li_items;
   }
 
