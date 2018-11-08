@@ -50,7 +50,15 @@ actions = {
     }
   });
   model.samPresent({removedDoneItems: activeItems});
-  }
+  },
+
+  toggleEditMode() {
+  model.samPresent({toggleEditMode:''});
+  },
+  editItem(data) {
+  let text = data.e.target.value;
+	model.samPresent({editItem: text, index: data.index})
+  },
 
 };
 //-------------------------------------------------------------------- Model ---
@@ -87,11 +95,26 @@ model = {
       this.items[index].done = !this.items[index].done;  // inversion du booléen !
       console.log(index+' : '+this.items[index].done);   // pour débug...
     }
+
     if (has.call(data, 'removedDoneItems')) {
       this.items = data.removedDoneItems;
     }
+
+    if (has.call(data, 'toggleEditMode')) {
+      console.log(model.isEditMode);
+      if(model.isEditMode){
+        model.isEditMode = false
+      }else {
+      model.isEditMode = true;
+      }
+    }
     // Demande à l'état de l'application de prendre en compte la modification
     // du modèle
+    if (has.call(data, 'editItem')) {
+      model.items[data.index].text = data.editItem;
+    }
+    console.log(model.items);
+
     state.samUpdate(this);
   }
 };
@@ -138,7 +161,11 @@ view = {
 
   // Renvoit le HTML
   normalInterface(model, state) {
-    let li_items = this.listItems(model,state);
+    if(model.isEditMode){
+      var li_items = this.listItems(model,state);
+    }else {
+      var li_items = this.editItems(model,state);
+    }
     let li_bouton = this.boutonsValue(state);
     let li_boutonEditText = this.boutonsEditValue(model);
     return `
@@ -146,6 +173,13 @@ view = {
 	li.done {
   	text-decoration: line-through;
   	}
+    ul>li {
+    line-height: 4.5ex;
+    padding-left: 0.5ex;
+   }
+  ul>li>input {
+    margin-left: -0.5ex;
+   }
 	</style>
       <h2> Todo List </h2>
       <input id="inputText" type="text" />
@@ -153,7 +187,7 @@ view = {
       <ul>
       	${li_items}
       </ul>
-        ${li_bouton} <button>${li_boutonEditText}</button>
+        ${li_bouton} <button onclick="actions.toggleEditMode()">${li_boutonEditText}</button>
       `;
   },
   boutonsEditValue(state){
@@ -171,6 +205,7 @@ view = {
     }
   },
   listItems(model, state) {
+    console.log("todo mode\n");
     console.log(model.items)
     let li_items = model.items.map((v,i,a)=>{
     	let raye = '';
@@ -179,6 +214,12 @@ view = {
 
     }).join('\n');
     return li_items;
+  },
+  editItems(model, state) {
+    console.log("edit mode\n");
+    console.log(model.items)
+    let li_items = model.items.map((v,i,a)=>'<li><input onchange="actions.editItem({e:event, index:'+i+'})" value="'+v.text+'"/></li>').join('\n');
+    console.log(li_items);
+    return li_items;
   }
-
 };
