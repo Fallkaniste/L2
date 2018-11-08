@@ -1,10 +1,11 @@
 #include <stdio.h>
+#include "stdlib.h"
 
 	typedef struct {
-		char name[100];
-		char authors[10][100];
+		char *name;
+		char **authors;
 		int nauthors;
-		char publisher[100];
+		char *publisher;
 		int year;
 		long int isbn;
 	}book_t;
@@ -18,17 +19,47 @@
 	typedef struct {
 		char *name;
 		int ndays;
-		day_t *days;
+		day_e *days;
 		book_t *books;
 		int nbooks;
 	}library_t;
 
 book_t* book_creat(){
-	book_t *pt = malloc(sizeof(book_t));
-	pt -> name = NULL;
+	book_t *book = malloc(sizeof(book_t));
+	book -> name = NULL;
+	book -> authors = NULL;
+	book -> nauthors = 0;
+	book -> publisher = NULL;
+	book -> year = 0;
+	book -> isbn = 0;
+	return(book);
+	}
 
+library_t* library_create(){
+	library_t *library = malloc(sizeof(library_t));
+	library -> name = NULL;
+	library -> ndays = 0;
+	library -> days = NULL;
+	library -> books = NULL;
+	library -> nbooks = 0;
+	return(library);
 }
 
+int book_add_author(book_t *book, char* author){
+	book -> nauthors ++;
+	book -> authors = realloc(book -> authors,sizeof(char*)*book -> nauthors);
+	book -> authors[book -> nauthors-1] = author;
+	return 0;
+}
+
+
+void book_free(book_t *book){
+	free(book);
+}
+
+void library_free(library_t *library){
+	free(library);
+}
 
 void book_print(book_t book){
 
@@ -65,7 +96,7 @@ void library_print(library_t library){
 	}
 }
 int main(){
-
+/*
 	library_t Sciences_Library={
 		"Sciences Library",
 		4,
@@ -114,5 +145,5 @@ int main(){
 
 library_print(Sciences_Library);
 library_print(Novel_Library);
-
+*/
 }
