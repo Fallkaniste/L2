@@ -67,7 +67,7 @@ actions = {
 model = {
   items: [],
   done: false,
-  isEditMode: false,
+  isEditMode: true,
 
   init(data) {
     this.items = data.items || [];
@@ -102,18 +102,13 @@ model = {
 
     if (has.call(data, 'toggleEditMode')) {
       console.log(model.isEditMode);
-      if(model.isEditMode){
-        model.isEditMode = false
-      }else {
-      model.isEditMode = true;
-      }
+      model.isEditMode = !model.isEditMode;
     }
     // Demande à l'état de l'application de prendre en compte la modification
     // du modèle
     if (has.call(data, 'editItem')) {
       model.items[data.index].text = data.editItem;
     }
-    console.log(model.items);
 
     state.samUpdate(this);
   }
@@ -128,9 +123,11 @@ state = {
     let test = model.items.filter(v => v.done == true);
     if (test.length > 0 ) {
       this.hasDoneItems = true;
-    }else {
-      this.hasDoneItems = false;
-    }
+    }else {this.hasDoneItems = false;}
+
+    if (model.items.length == 0) {
+      this.disableEditButton = true
+    }else {this.disableEditButton = false}
     this.samRepresent(model);
 
     // this.samNap(model);
@@ -167,7 +164,7 @@ view = {
       var li_items = this.editItems(model,state);
     }
     let li_bouton = this.boutonsValue(state);
-    let li_boutonEditText = this.boutonsEditValue(model);
+    let li_button_edit = this.disablebutton(state);
     return `
      <style type="text/css">
 	li.done {
@@ -187,9 +184,19 @@ view = {
       <ul>
       	${li_items}
       </ul>
-        ${li_bouton} <button onclick="actions.toggleEditMode()">${li_boutonEditText}</button>
+        ${li_bouton} ${li_button_edit}
       `;
   },
+
+  disablebutton(state){
+    let li_boutonEditText = this.boutonsEditValue(model);
+    if (state.disableEditButton) {
+      return('<button disabled="disabled">'+li_boutonEditText+'</button>')
+    }else {
+    return('<button onclick="actions.toggleEditMode()">'+li_boutonEditText+'</button>')
+  }
+  },
+
   boutonsEditValue(state){
     if(model.isEditMode) {
       return('Edit Mode')
@@ -219,7 +226,6 @@ view = {
     console.log("edit mode\n");
     console.log(model.items)
     let li_items = model.items.map((v,i,a)=>'<li><input onchange="actions.editItem({e:event, index:'+i+'})" value="'+v.text+'"/></li>').join('\n');
-    console.log(li_items);
     return li_items;
   }
 };
