@@ -24,7 +24,7 @@
 		int nbooks;
 	}library_t;
 
-book_t* book_creat(){
+book_t* book_create(){
 	book_t *book = malloc(sizeof(book_t));
 	book -> name = NULL;
 	book -> authors = NULL;
@@ -52,6 +52,20 @@ int book_add_author(book_t *book, char* author){
 	return 0;
 }
 
+int library_add_day(library_t *library , day_e day){
+	library -> ndays ++;
+	library -> days = realloc(library -> days,sizeof(day_e)*library -> ndays);
+	library -> days[library -> ndays-1] = day;
+	return 0;
+}
+
+int library_add_book(library_t *library , book_t book){
+	library -> nbooks ++;
+	library -> books = realloc(library -> books,sizeof(book_t*)*library -> nbooks);
+	library -> books[library -> nbooks-1] = book;
+	return 0;
+}
+
 
 void book_free(book_t *book){
 	free(book);
@@ -61,22 +75,22 @@ void library_free(library_t *library){
 	free(library);
 }
 
-void book_print(book_t book){
+void book_print(book_t* book){
 
-	printf("Titre : %s\n", book.name);
+	printf("Titre : %s\n", book -> name);
 	printf("Ecrit par : ");
-	for (int i = 0; i < book.nauthors; ++i){printf("%s\n", book.authors[i]);}
-	printf("Edition : %s\n", book.publisher);
-	printf("Année : %d\n", book.year);
-	printf("ISBN : %ld\n", book.isbn);
+	for (int i = 0; i < book->nauthors; ++i){printf("%s\n", book->authors[i]);}
+	printf("Edition : %s\n", book->publisher);
+	printf("Année : %d\n", book->year);
+	printf("ISBN : %ld\n", book->isbn);
 	}
 
-void library_print(library_t library){
-	printf("biliothèque : %s\n", library.name);
-	printf("ouverte %d jours sur 7\n", library.ndays);
+void library_print(library_t* library){
+	printf("biliothèque : %s\n", library->name);
+	printf("ouverte %d jours sur 7\n", library->ndays);
 	printf("jours d'ouverture : ");
-	for (int i = 0; i < library.ndays; ++i){
-		switch(library.days[i]){
+	for (int i = 0; i < library->ndays; ++i){
+		switch(library->days[i]){
 			case 0: printf("monday, ");break;
 			case 1: printf("tuesday, ") ;break;
 			case 2: printf("wednesday, ") ;break;
@@ -88,62 +102,73 @@ void library_print(library_t library){
 		}
 	}
 	printf("\n");
-	printf("nombre de livres en stock : %d\n", library.nbooks);
-	for (int i = 0; i < library.nbooks; ++i)
+	printf("nombre de livres en stock : %d\n", library->nbooks);
+	for (int i = 0; i < library->nbooks; ++i)
 	{
 		printf("livre N°%d:\n", i+1);
-		book_print(library.books[i]);
+		book_print(library->books);
 	}
 }
 int main(){
-/*
-	library_t Sciences_Library={
-		"Sciences Library",
-		4,
-		{monday,thursday,wednesday,thursday},
-		{
-		{//livre N°1
-			"The C Programming Language",
-			{//auteurs
-				"Brian W. Kernighan","Dennis M. Ritchie"
-			},
-			2,"rentice Hall",1988,9780131103627
-		},
-		{//livre N°2
-			"C: The Complete Reference",
-			{//auteurs
-				"Herbert Schildt"
-			},
-			1,"McGraw-Hill Education",2000,9780072121247
-		}
+library_t *Sciences_Library = library_create();
+library_t *Novel_Library = library_create();
 
-		},2,
-	};
-	library_t Novel_Library={
-		"Novel Library",
-		4,
-		{tuesday,wednesday,thursday,friday},
-		{
-		{//livre N°1
-			"Harry Potter and the Philosopher’s Stone",
-			{//auteurs
-				"J. K. Rowling"
-			},
-			1,"Bloomsbury",1997,9780747532699
-		},
-		{//livre N°2
-			"Harry Potter and the Chamber of Secret",
-			{//auteurs
-				"J. K. Rowling"
-			},
-			1,"Bloomsbury",1998,9780747538493
+book_t *SlBook1 = book_create();
+book_t *SlBook2 = book_create();
+book_t *NlBook1 = book_create();
+book_t *NlBook2 = book_create();
 
-		},
-	},2,
+Sciences_Library -> name = "Sciences Library";
+library_add_day(Sciences_Library,monday);
+library_add_day(Sciences_Library,tuesday);
+library_add_day(Sciences_Library,wednesday);
+library_add_day(Sciences_Library,thursday);
 
-	};
+Novel_Library -> name = "Novel Library";
+library_add_day(Novel_Library,tuesday);
+library_add_day(Novel_Library,wednesday);
+library_add_day(Novel_Library,thursday);
+library_add_day(Novel_Library,friday);
+
+SlBook1 -> name = "The C Programming Language";
+book_add_author(SlBook1,"Brian W. Kernighan");
+book_add_author(SlBook1,"Dennis M. Ritchie");
+SlBook1 -> publisher = "rentice Hall";
+SlBook1 -> year = 1988;
+SlBook1 -> isbn = 9780131103627;
+
+SlBook2 -> name = "C: The Complete Reference";
+book_add_author(SlBook2,"Herbert ScThe C Programming Language");
+SlBook2 -> publisher = "McGraw-Hill Education";
+SlBook2 -> year = 2000;
+SlBook2 -> isbn = 9780072121247;
+
+NlBook1 -> name = "Harry Potter and the Philosopher’s Stone";
+book_add_author(NlBook1,"J. K. Rowling");
+NlBook1 -> publisher = "Bloomsbury";
+NlBook1 -> year = 1997;
+NlBook1 -> isbn = 9780747532699;
+
+NlBook2 -> name = "Harry Potter and the Chamber of Secret";
+book_add_author(NlBook2,"J. K. Rowling");
+NlBook2 -> publisher = "Bloomsbury";
+NlBook2 -> year = 1998;
+NlBook2 -> isbn = 9780747538493;
+
+library_add_book(Sciences_Library,SlBook1);
+library_add_book(Sciences_Library,SlBook2);
+
+library_add_book(Novel_Library,NlBook1);
+library_add_book(Novel_Library,NlBook2);
 
 library_print(Sciences_Library);
 library_print(Novel_Library);
-*/
+
+library_free(Sciences_Library);
+library_free(Novel_Library);
+book_free(SlBook1);
+book_free(SlBook2);
+book_free(NlBook1);
+book_free(NlBook2);
+
 }
