@@ -61,7 +61,7 @@ int library_add_day(library_t *library , day_e day){
 
 int library_add_book(library_t *library , book_t book){
 	library -> nbooks ++;
-	library -> books = realloc(library -> books,sizeof(book_t*)*library -> nbooks);
+	library -> books = realloc(library -> books,sizeof(book_t)*library -> nbooks);
 	library -> books[library -> nbooks-1] = book;
 	return 0;
 }
@@ -155,11 +155,11 @@ NlBook2 -> publisher = "Bloomsbury";
 NlBook2 -> year = 1998;
 NlBook2 -> isbn = 9780747538493;
 
-library_add_book(Sciences_Library,SlBook1);
-library_add_book(Sciences_Library,SlBook2);
+library_add_book(Sciences_Library,*SlBook1);
+library_add_book(Sciences_Library,*SlBook2);
 
-library_add_book(Novel_Library,NlBook1);
-library_add_book(Novel_Library,NlBook2);
+library_add_book(Novel_Library,*NlBook1);
+library_add_book(Novel_Library,*NlBook2);
 
 library_print(Sciences_Library);
 library_print(Novel_Library);
