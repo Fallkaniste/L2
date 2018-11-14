@@ -15,13 +15,14 @@ function go() {
   sandbox();
 
   // Appelle l'affichage de l'application.
+  actions.updateTime(model);
   state.samUpdate(model);
 }
 
 // Bac à sable pour faire des tests
 function sandbox() {
 
-  function actions_updateTime(data) {
+/*  function actions_updateTime(data) {
     const date = new Date();
     const hh = date.getHours();
     const mm = date.getMinutes();
@@ -43,7 +44,7 @@ function sandbox() {
   let   alarmDate   = new Date();
   alarmDate.setSeconds(alarmDate.getSeconds() + seconds);
   const delay = alarmDate - currentDate;   // durée en millisecondes
-  const timeoutId  = window.setTimeout ( ()=>{actions_fireAlarm ({message: 'Alarme déclenchée !'})}, delay);
+  const timeoutId  = window.setTimeout ( ()=>{actions_fireAlarm ({message: 'Alarme déclenchée !'})}, delay);*/
 }
 
 //------------------------------------------------------------------ Actions ---
@@ -51,27 +52,31 @@ function sandbox() {
 //
 actions = {
 
-  updateTime(data) {
+  updateTime() {
     let date = new Date();
-    let hh = date.getHours();
-    let mm = date.getMinutes();
-    let ss = date.getSeconds();
-    let time = [hh,mm,ss];
+    let time = [date.getHours(),date.getMinutes(),date.getSeconds()];
     model.samPresent({updatedTime : time});
 
   },  // bouton "Heure courante" et setInterval()
 
   startTime() {
     console.log('appelle starttime ...');
-    model.samPresent({startTime : false});
+    model.samPresent({startTime : true});
   },   // bouton "Démarrer"
 
   stopTime() {
     console.log('appelle stoptime ...');
-    model.samPresent({stopTime : true});
+    model.samPresent({stopTime : false});
   },    // button "Arrêter"
 
-  addAlarm() { },    // button "Ajouter une alarme"
+  addAlarm() {
+    const newAlarm = {
+      time: ['05','00','00'],
+      message: '',
+      timeoutId: null,
+    };
+    model.samPresent({addAlarm : newAlarm});
+  },    // button "Ajouter une alarme"
 
   changeAlarmHoursMinutes(data) { },  // sélection de l'heure et des minutes
 
@@ -90,7 +95,7 @@ actions = {
 //
 model = {
   time: {
-    value: ['01','23','45'],  // heures, minutes, secondes
+    value: [],  // heures, minutes, secondes
     isOn: false,              // rafraichissement récurrent de l'heure
     intervalId: null,         // ref sur le timer récurrent
     sectionId: 'time',        // identifiant de la section HTML
@@ -122,15 +127,17 @@ model = {
       this.time.hasChanged = true;
     }
     if (has.call(data, 'startTime')) {
+      model.time.intervalId = window.setInterval( ()=>{actions.updateTime()}, 1000);
       model.time.isOn = data.startTime;
       this.time.hasChanged = true;
     }
     if (has.call(data, 'stopTime')) {
+      window.clearInterval(model.time.intervalId);
       model.time.isOn = data.stopTime;
       this.time.hasChanged = true;
     }
     if (has.call(data, 'addAlarm')) {
-      // TODO:
+      model.alarms.values.push(data.addAlarm);
       this.alarms.hasChanged = true;
     }
     // TODO: et les suivants...
@@ -189,7 +196,7 @@ view = {
       <time>${time}</time>
       <div>
         <button onclick="actions.updateTime()" class="time">Heure courante</button>
-        <button onclick="actions.${startstop}()" class="time">Démarrer / Stop</button>
+        <button ${startstop}</button>
       </div>
     </section>
     `;
@@ -197,37 +204,55 @@ view = {
 
   // Renvoit le HTML pour la gestion des alarmes
   alarmsUI(model, state) {
+    let alarms = this.addAlarm(model,state);
     return `
     <section>
       <div class="alarmes">
-        <div class="alarme">
-          <input type="checkbox" />
-          <select>
-            <option value="00">00</option>
-            <option value="23">23</option>
-          </select>
-          <select>
-            <option value="00">00</option>
-            <option value="59">59</option>
-          </select>
-          <input type="text" placeholder="Description de l'alarme" />
-          <button class="enlever">Enlever cette alarme</button>
-        </div>
+        ${alarms}
       </div>
-      <button class="ajouter">Ajouter une alarme</button>
+      <button onclick="actions.addAlarm()" class="ajouter">Ajouter une alarme</button>
     </section>
     `;
   },
 
   startstopvalue(model){
-    console.log(model.time.isOn);
+    //console.log(model.time.isOn);
     if(model.time.isOn) {
-      console.log('startTime');
-      return('startTime')
+      return('onclick="actions.stopTime()" class="time">Arrêter')
     }else {
-      console.log('stopTime');
-      return('stopTime')
+      return('onclick="actions.startTime()" class="time">Démarrer')
     }
+  },
+
+  addAlarm(model,state){
+    var alarms=[],valuesH=[],valuesM=[],deb,select;
+
+    for (var i = 0; i <= 23; i++) {
+      if (i<10) {deb=0;}else{deb=''}
+      if (i == model.time.value[0]) {select='selected="selected"';}else{select='';}
+      valuesH[i]='<option '+select+' value="'+deb+i+'">'+deb+i+'</option>'
+
+    }
+    for (var i = 0; i <= 59; i++) {
+      if (i<10) {deb=0;}else{deb='';}
+      valuesM[i]='<option '+select+' value="'+deb+i+'">'+deb+i+'</option>'
+      if (i == model.time.value[1]) {select='selected="selected"';}else{select='';}
+    }
+
+    for (let i = 0; i < model.alarms.values.length; i++) {
+      alarms[i]=`<div class="alarme">
+        <input type="checkbox" />
+        <select>
+          ${valuesH}
+        </select>
+        <select>
+          ${valuesM}
+        </select>
+        <input type="text" placeholder="Description de l'alarme" />
+        <button class="enlever">Enlever cette alarme</button>
+      </div>`
+    }
+    return(alarms.join('\n'));
   },
 
 };
