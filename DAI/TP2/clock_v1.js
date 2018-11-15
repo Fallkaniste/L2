@@ -15,6 +15,7 @@ function go() {
   sandbox();
 
   // Appelle l'affichage de l'application.
+
   actions.updateTime(model);
   state.samUpdate(model);
 }
@@ -56,7 +57,7 @@ actions = {
     let date = new Date();
     let time = [date.getHours(),date.getMinutes(),date.getSeconds()];
     model.samPresent({updatedTime : time});
-
+    console.log(model.alarms.values);
   },  // bouton "Heure courante" et setInterval()
 
   startTime() {
@@ -82,7 +83,14 @@ actions = {
 
   changeAlarmDescription(data) { },   // saisie d'une description
 
-  removeAlarm(data) { },   // button "Enlever cette alarme"
+  removeAlarm(data) {
+    console.log("data",data.index);
+    console.log(model.alarms.values);
+    console.log(model.alarms.values.splice(data.index,1));
+  //  let alarms = model.alarms.values.splice(data.index,1);
+  //  console.log("alarms",alarms);
+  //  model.samPresent({removedAlarm : alarms});
+  },   // button "Enlever cette alarme"
 
   setAlarm(data) { },      // checkbox pour enclencher une alarme
 
@@ -138,6 +146,10 @@ model = {
     }
     if (has.call(data, 'addAlarm')) {
       model.alarms.values.push(data.addAlarm);
+      this.alarms.hasChanged = true;
+    }
+    if (has.call(data, 'removedAlarm')) {
+      model.alarms.values = data.removedAlarm;
       this.alarms.hasChanged = true;
     }
     // TODO: et les suivants...
@@ -241,7 +253,7 @@ view = {
 
     for (let i = 0; i < model.alarms.values.length; i++) {
       alarms[i]=`<div class="alarme">
-        <input type="checkbox" />
+        <input onclick="actions.setAlarm()" type="checkbox" />
         <select>
           ${valuesH}
         </select>
@@ -249,7 +261,7 @@ view = {
           ${valuesM}
         </select>
         <input type="text" placeholder="Description de l'alarme" />
-        <button class="enlever">Enlever cette alarme</button>
+        <button onclick="actions.removeAlarm({index:${i}})" class="enlever">Enlever cette alarme</button>
       </div>`
     }
     return(alarms.join('\n'));
