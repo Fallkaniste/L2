@@ -2,12 +2,14 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[]) {
   FILE *file = NULL;
-  int nitems = -1;
   int ret = EOF;
-  char buf[9] = "\0";
+  char* endptr = NULL;
+  long val2 = 0;
+
   if (argc != 2) {
     fprintf(stderr, "invalid number of arguments\n");
     return 1;
@@ -17,13 +19,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "unable to open the file\n");
     return 1;
   }
-  while (nitems != 0) {
-    nitems = fread(buf , sizeof(char) , 9 , file);
-    buf[nitems] = '\0';
-    printf("read : %s (%d byte(s) from %s)\n",buf , nitems , argv[1]);
-  }
 
-
+  val2 = strtol(argv[1], &endptr, 10);
 
   if (ferror(file)) {
     return 1;
