@@ -84,12 +84,7 @@ actions = {
   changeAlarmDescription(data) { },   // saisie d'une description
 
   removeAlarm(data) {
-    console.log("data",data.index);
-    console.log(model.alarms.values);
-    console.log(model.alarms.values.splice(data.index,1));
-  //  let alarms = model.alarms.values.splice(data.index,1);
-  //  console.log("alarms",alarms);
-  //  model.samPresent({removedAlarm : alarms});
+    model.samPresent({removedAlarm : data.index});
   },   // button "Enlever cette alarme"
 
   setAlarm(data) { },      // checkbox pour enclencher une alarme
@@ -149,7 +144,7 @@ model = {
       this.alarms.hasChanged = true;
     }
     if (has.call(data, 'removedAlarm')) {
-      model.alarms.values = data.removedAlarm;
+      this.alarms.values.splice(data.removedAlarm,1);
       this.alarms.hasChanged = true;
     }
     // TODO: et les suivants...
@@ -201,6 +196,7 @@ view = {
   // Renvoit le HTML pour l'affichage de l'heure
   timeUI(model, state) {
   //  console.log(model.time.value);
+
     let time = (''+(model.time.value).join(':'));
     let startstop = this.startstopvalue(model);
     return `
@@ -216,6 +212,7 @@ view = {
 
   // Renvoit le HTML pour la gestion des alarmes
   alarmsUI(model, state) {
+    // console.log('alarmsUI ',model.alarms.values);
     let alarms = this.addAlarm(model,state);
     return `
     <section>
