@@ -23,29 +23,29 @@ function go() {
 // Bac à sable pour faire des tests
 function sandbox() {
 
-/*  function actions_updateTime(data) {
-    const date = new Date();
-    const hh = date.getHours();
-    const mm = date.getMinutes();
-    const ss = date.getSeconds();
-    const time = [hh,mm,ss];
-    console.log(data.message + time.join(':') );
-  }
-
-  function actions_fireAlarm(data) {
-    console.log(data.message);
-    window.clearInterval(intervalId);  // et arrête l'horloge !
-  }
-
-  const intervalId = window.setInterval( ()=>{actions_updateTime({message: 'Il est : '})}, 2000);
-
-  // Lance une alarme dans 7 secondes !
-  const seconds = 7;
-  const currentDate = new Date();
-  let   alarmDate   = new Date();
-  alarmDate.setSeconds(alarmDate.getSeconds() + seconds);
-  const delay = alarmDate - currentDate;   // durée en millisecondes
-  const timeoutId  = window.setTimeout ( ()=>{actions_fireAlarm ({message: 'Alarme déclenchée !'})}, delay);*/
+  // function actions_updateTime(data) {
+  //   const date = new Date();
+  //   const hh = date.getHours();
+  //   const mm = date.getMinutes();
+  //   const ss = date.getSeconds();
+  //   const time = [hh,mm,ss];
+  //   console.log(data.message + time.join(':') );
+  // }
+  //
+  // function actions_fireAlarm(data) {
+  //   console.log(data.message);
+  //   window.clearInterval(intervalId);  // et arrête l'horloge !
+  // }
+  //
+  // const intervalId = window.setInterval( ()=>{actions_updateTime({message: 'Il est : '})}, 1000);
+  //
+  // // Lance une alarme dans 7 secondes !
+  // const seconds = 7;
+  // const currentDate = new Date();
+  // let   alarmDate   = new Date();
+  // alarmDate.setSeconds(alarmDate.getSeconds() + seconds);
+  // const delay = alarmDate - currentDate;   // durée en millisecondes
+  // const timeoutId  = window.setTimeout ( ()=>{actions_fireAlarm ({message: 'Alarme déclenchée !'})}, delay);
 }
 
 //------------------------------------------------------------------ Actions ---
@@ -57,7 +57,6 @@ actions = {
     let date = new Date();
     let time = [date.getHours(),date.getMinutes(),date.getSeconds()];
     model.samPresent({updatedTime : time});
-    console.log(model.alarms.values);
   },  // bouton "Heure courante" et setInterval()
 
   startTime() {
@@ -71,26 +70,49 @@ actions = {
   },    // button "Arrêter"
 
   addAlarm() {
+    const date = new Date();
     const newAlarm = {
-      time: ['05','00','00'],
+      time: [date.getHours(),date.getMinutes()+1,0],
       message: '',
       timeoutId: null,
     };
     model.samPresent({addAlarm : newAlarm});
   },    // button "Ajouter une alarme"
 
-  changeAlarmHoursMinutes(data) { },  // sélection de l'heure et des minutes
+  changeAlarmHoursMinutes(data) {
+    if (data.part == 'hour') {
+      model.samPresent({changedHour : data.v , index : data.index});
+    }else if (data.part == 'minutes') {
+      model.samPresent({changedMinutes : data.v , index : data.index});
+    }
+  },  // sélection de l'heure et des minutes
 
-  changeAlarmDescription(data) { },   // saisie d'une description
+  changeAlarmDescription(data) {
+    model.samPresent({changedAlarmDescription : data.v , index : data.index});
+  },   // saisie d'une description
 
   removeAlarm(data) {
     model.samPresent({removedAlarm : data.index});
   },   // button "Enlever cette alarme"
 
-  setAlarm(data) { },      // checkbox pour enclencher une alarme
+  setAlarm(data) {
+    if (data.c) {
+      let currentDate = new Date();
+      let   alarmDate   = new Date();
+      alarmDate.setHours((model.alarms.values[data.index].time[0]))
+      alarmDate.setMinutes((model.alarms.values[data.index].time[1]))
+      alarmDate.setSeconds((model.alarms.values[data.index].time[2]))
+      const delay = alarmDate - currentDate;
+      model.samPresent({setAlarm : delay , index : data.index});
+    }else {
+      model.samPresent({unsetAlarm : null , index : data.index});
+    }
 
-  fireAlarm(data) { }      // lancée par le setTimeout() de l'alarme
+  },      // checkbox pour enclencher une alarme
 
+  fireAlarm(data) {      // lancée par le setTimeout() de l'alarme
+    alert("Alarme !\n\nil est "+data.alarms.time[0]+":"+data.alarms.time[1]+"\n\nmessage : "+data.alarms.message+"")
+  },
 };
 
 //-------------------------------------------------------------------- Model ---
@@ -144,7 +166,30 @@ model = {
       this.alarms.hasChanged = true;
     }
     if (has.call(data, 'removedAlarm')) {
+      clearTimeout(model.alarms.values[data.removedAlarm].timeoutId);
+      model.alarms.values[data.removedAlarm].timeoutId = null;
       this.alarms.values.splice(data.removedAlarm,1);
+      this.alarms.hasChanged = true;
+    }
+    if (has.call(data, 'changedHour')) {
+      model.alarms.values[data.index].time[0] = data.changedHour;
+      this.alarms.hasChanged = true;
+    }
+    if (has.call(data, 'changedMinutes')) {
+      model.alarms.values[data.index].time[1] = data.changedMinutes;
+      this.alarms.hasChanged = true;
+    }
+    if (has.call(data, 'changedAlarmDescription')) {
+      model.alarms.values[data.index].message = data.changedAlarmDescription;
+      this.alarms.hasChanged = true;
+    }
+    if (has.call(data, 'setAlarm')) {
+      model.alarms.values[data.index].timeoutId = setTimeout( ()=>{actions.fireAlarm({alarms : model.alarms.values[data.index]})} , data.setAlarm);
+      this.alarms.hasChanged = true;
+    }
+    if (has.call(data, 'unsetAlarm')) {
+      clearTimeout(model.alarms.values[data.index].timeoutId);
+      model.alarms.values[data.index].timeoutId = null;
       this.alarms.hasChanged = true;
     }
     // TODO: et les suivants...
@@ -234,33 +279,43 @@ view = {
   },
 
   addAlarm(model,state){
-    var alarms=[],valuesH=[],valuesM=[],deb,select;
+    var alarms=[],valuesH=[],valuesM=[],deb,select,text,checked,disable;
+    if (model.alarms.values.length > 0) {
+  for (let j = 0; j < model.alarms.values.length; j++) {
 
-    for (var i = 0; i <= 23; i++) {
+    for (let i = 0; i <= 23; i++) {
       if (i<10) {deb=0;}else{deb=''}
-      if (i == model.time.value[0]) {select='selected="selected"';}else{select='';}
-      valuesH[i]='<option '+select+' value="'+deb+i+'">'+deb+i+'</option>'
-
+        if (i == model.alarms.values[j].time[0]) {select='selected="selected"';}else{select='';}
+        valuesH[i]='<option '+select+' value="'+deb+i+'">'+deb+i+'</option>'
     }
-    for (var i = 0; i <= 59; i++) {
+    for (let i = 0; i <= 59; i++) {
       if (i<10) {deb=0;}else{deb='';}
+      if (i == model.alarms.values[j].time[1]) {select='selected="selected"';}else{select='';}
       valuesM[i]='<option '+select+' value="'+deb+i+'">'+deb+i+'</option>'
-      if (i == model.time.value[1]) {select='selected="selected"';}else{select='';}
     }
 
-    for (let i = 0; i < model.alarms.values.length; i++) {
-      alarms[i]=`<div class="alarme">
-        <input onclick="actions.setAlarm()" type="checkbox" />
-        <select>
+    if (model.alarms.values[j].timeoutId != null) {
+      checked = 'checked="checked"';
+      disable = 'disabled="disabled"';
+    }else {
+      checked = '';
+      disable = '';
+    }
+      alarms[j]=`<div class="alarme">
+        <input onclick="actions.setAlarm({c: checked , index : ${j}})" type="checkbox" ${checked}/>
+        <select onchange="actions.changeAlarmHoursMinutes({v: value, part:'hour', index:${j}})" ${disable}>
           ${valuesH}
         </select>
-        <select>
+        <select onchange="actions.changeAlarmHoursMinutes({v: value, part:'minutes', index:${j}})" ${disable}>
           ${valuesM}
         </select>
-        <input type="text" placeholder="Description de l'alarme" />
-        <button onclick="actions.removeAlarm({index:${i}})" class="enlever">Enlever cette alarme</button>
+        <input onchange="actions.changeAlarmDescription({v: value, index:${j}})" type="text" placeholder="Description de l'alarme" value="${model.alarms.values[j].message}" ${disable}/>
+        <button onclick="actions.removeAlarm({index:${j}})" class="enlever">Enlever cette alarme</button>
       </div>`
     }
+  }else {
+    alarms =["",""];
+  }
     return(alarms.join('\n'));
   },
 
