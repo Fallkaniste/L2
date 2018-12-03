@@ -21,13 +21,15 @@ function go() {
     langDst: 'en',
     translations : translations1,
   };
+
   actions.initAndGo(data);
+  actions.tabsUpdate();
+
 }
 
 //-------------------------------------------------------------------- Tests ---
 
 function sandbox() {
-
   function action_display(data) {
     // console.log(data);
     if (!data.error) {
@@ -76,6 +78,31 @@ actions = {
     });
   },
 
+  tabsUpdate() {
+  let values = [], tab = [];
+  for (let i = 0; i < model.translations.values.length; i++) {
+    model.translations.values[i].forEach( (v,j,a)=>{
+      if ((j%2 == 0)) {
+        if((!tab.includes(v))) {
+          tab.push(v);
+          values.push({language : languages[v],occ : 1})
+        }else {
+          for (let k = 0; k < values.length; k++) {
+            if (values[k].language == languages[v]) {
+              values[k].occ ++;
+            }
+          }
+        }
+      }
+    });
+  }
+    model.samPresent({
+      do:'makeTabs',
+      values : values,
+      tabsIn : values.slice(0,3),
+      tabsInSelect : values.slice(3,values.length)
+      });
+    },
   // TODO: Ajouter les autres actions...
 };
 
@@ -84,7 +111,10 @@ actions = {
 //
 model = {
   tabs: {
-    // TODO: propriétés pour les onglets
+    values :[],
+    tabsIn: [],
+    tabsInSelect: [],
+
   },
   request: {
     languagesSrc: [],
@@ -131,8 +161,10 @@ model = {
         break;
 
 
-      case '':  // TODO: Autres modifications de model...
-
+      case 'makeTabs':
+        this.tabs.values = data.values;
+        this.tabs.tabsIn = data.tabsIn;
+        this.tabs.tabsInSelect = data.tabsInSelect;
         break;
 
       default:
@@ -150,7 +182,9 @@ model = {
 //
 state = {
   tabs: {
-    // TODO: données des onglets déduites de model
+    values : model.tabs.values,
+    tabsIn : model.tabs.tabsIn,
+    tabsInSelect : model.tabs.tabsInSelect
   },
   translations: {
     // TODO: données de traductions déduites de model (par langue notamment)
@@ -158,14 +192,13 @@ state = {
 
   samUpdate(model) {
 
-    // TODO: Toutes les mises à jour des données pour préparer l'affichage
-
     this.samRepresent(model);
   },
 
   // Met à jour l'état de l'application, construit le code HTML correspondant,
   // et demande son affichage.
   samRepresent(model) {
+
     let representation = '';
 
     let headerUI = view.headerUI(model,state);
@@ -216,7 +249,7 @@ view = {
             <button class="btn btn-primary">Charger</button>
             <button class="btn btn-ternary">Enregistrer</button>
             <button class="btn btn-secondary">Préférences</button>
-            <button class="btn btn-primary">À propos</button>
+            <button onclick="actions.makeTabs()" class="btn btn-primary">À propos</button>
           </div>
         </div>
       </div>
@@ -225,6 +258,21 @@ view = {
   },
 
   tabsUI(model,state) {
+    let tabsIn=[],tabsInSelect=[];
+    for (let i = 0 ; i < model.tabs.tabsIn.length ; i++) {
+      tabsIn[i]=`<li class="nav-item">
+        <a class="nav-link " href="#">${model.tabs.tabsIn[i].language}
+          <span class="badge badge-primary">${model.tabs.tabsIn[i].occ}</span>
+        </a>
+      </li>`
+    }
+
+    for (var i = 0; i < model.tabs.tabsInSelect.length; i++) {
+      tabsInSelect[i] = `<option value="es">${model.tabs.tabsInSelect[i].language} (${model.tabs.tabsInSelect[i].occ})</option>`;
+    }
+
+
+
     return `
     <section id="tabs">
       <div class="row justify-content-start ml-1 mr-1">
@@ -232,29 +280,14 @@ view = {
           <li class="nav-item">
             <a class="nav-link active"
               href="#">Traductions
-              <span class="badge badge-primary">4</span>
+              <span class="badge badge-primary">${model.translations.values.length}</span>
             </a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link " href="#">Français
-              <span class="badge badge-primary">3</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link " href="#">Anglais
-              <span class="badge badge-primary">2</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link " href="#">Arabe
-              <span class="badge badge-primary">1</span>
-            </a>
-          </li>
+          ${tabsIn.join('\n')}
           <li class="nav-item">
             <select class="custom-select" id="selectFrom">
               <option selected="selected" value="0">Autre langue...</option>
-              <option value="es">Espagnol (1)</option>
-              <option value="it">Italien (1)</option>
+              ${tabsInSelect}
             </select>
           </li>
         </ul>
@@ -316,18 +349,29 @@ view = {
   },
 
   transGeneration(model,state){
-    let translations=[];
-    for (var i = 0; i < model.translations.values.length; i++) {
+    let translations=[],text1,text2;
+    for (let i = 0; i < model.translations.values.length; i++) {
+      if (model.translations.values[i][0] == 'ar') {
+        text1 = 'class="text-right"'
+      }else {
+        text1 = 'class="text-left"'
+      }
+
+      if (model.translations.values[i][2] == 'ar') {
+        text2 = 'class="text-right"'
+      }else {
+        text2 = 'class="text-left"'
+      }
       translations[i] = `<tr>
         <td class="text-center text-secondary"> ${i} </td>
         <td class="text-center">
-          <span class="badge badge-info">${model.translations.values[i][0].toLowerCase}</span>
+          <span class="badge badge-info">${model.translations.values[i][0]}</span>
         </td>
-        <td>${model.translations.values[i][1].toLowerCase()}</td>
+        <td ${text1}>${model.translations.values[i][1].toLowerCase()}</td>
         <td class="text-center">
           <span class="badge badge-info">${model.translations.values[i][2]}</span>
         </td>
-        <td>${model.translations.values[i][3].toLowerCase()}</td>
+        <td ${text2}>${model.translations.values[i][3].toLowerCase()}</td>
         <td class="text-center">
           <div class="form-check">
             <input type="checkbox" class="form-check-input" />

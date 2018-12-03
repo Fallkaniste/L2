@@ -1,0 +1,43 @@
+<vrs name="Rent a video">
+      <street>1 rue Richelieu</street>
+      <postal-code>64000</postal-code>
+      <city>Pau</city>
+      <movies>
+            <movie name="Alien">
+                  <year>1979</year>
+                  <price>1.99</price>
+            </movie>
+            <movie name="Aliens">
+                  <year>1986</year>
+                  <price>1.99</price>
+            </movie>
+            <movie name="Alien 3">
+                  <year>1992</year>
+                  <price>1.99</price>
+            </movie>
+            <movie name="Alien Resurrection">
+                  <year>1997</year>
+                  <price>1.99</price>
+            </movie>
+            <movie name="Prometheus">
+                  <year>2012</year>
+                  <price>3.99</price>
+            </movie>
+            <movie name="Alien: Covenant">
+                  <year>2017</year>
+                  <price>3.99</price>
+            </movie>
+            <movie name="The Lord of the Rings: The Fellowship of the Ring">
+                  <year>2001</year>
+                  <price>2.99</price>
+            </movie>
+            <movie name="The Lord of the Rings: The Two Towers">
+                  <year>2002</year>
+                  <price>2.99</price>
+            </movie>
+            <movie name="The Lord of the Rings: The Return of the King">
+                  <year>2003</year>
+                  <price>2.99</price>
+            </movie>
+      </movies>
+</vrs>
