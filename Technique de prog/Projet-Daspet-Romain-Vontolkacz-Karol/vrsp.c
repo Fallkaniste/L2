@@ -18,12 +18,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   if (ferror(file)) {
-    printf("test\n", );
     return 1;
   }
 
-
-  scanf("VRSP\n",comm);
+  printf("VRSP>");
+  scanf("%c\n",comm);
 
 
   ret = fclose(file);

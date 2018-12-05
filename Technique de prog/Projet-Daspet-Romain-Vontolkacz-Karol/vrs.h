@@ -38,7 +38,7 @@ void vrs_free(vrs_t *vrs);
 /**
 * Handles the addr command for a VRS.
 * \param vrs The VRS.
-*/
+*/Rent a video, 1 rue Richelieu, 64000, Pau
 void vrs_handle_addr(vrs_t vrs);
 /**
 * Handles the mv command for all the movies of a VRS.
@@ -101,7 +101,7 @@ void vrs_handle_mvyge(vrs_t vrs, int year);
 void vrs_handle_mvygt(vrs_t vrs, int year);
 /**
 * Handles the mvyle command for all the movies of a VRS.
-* \param vrs The VRS.
+* \param vrs The VRS.%s
 1/2018 Techniques de programmation - Projet - VRSP 6/7
 ersité de Pau et des Pays de l’Adour L2 informatique
 * \param year The movie release year.
