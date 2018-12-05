@@ -17,8 +17,8 @@ function go() {
     authors: 'Prénom1 NOM1 et Prénom2 NOM2',
     languagesSrc: ['fr', 'en', 'es'],
     languagesDst: ['fr', 'en', 'es', 'it', 'ar', 'eo', 'ja', 'zh'],
-    langSrc: 'fr',
-    langDst: 'en',
+    langSrc: 'en',
+    langDst: 'fr',
     translations : translations1,
   };
 
@@ -41,8 +41,8 @@ function sandbox() {
   }
 
   const expr = 'asperge';
-  const langSrc = 'fr';
-  const langDst = 'en';
+  const langSrc = 'en';
+  const langDst = 'fr';
   googleTranslation(expr, langSrc, langDst, action_display );
 }
 
@@ -96,11 +96,106 @@ actions = {
       }
     });
   }
+  values.sort((a,b)=>b.occ-a.occ);
     model.samPresent({
       do:'makeTabs',
       values : values,
       tabsIn : values.slice(0,3),
       tabsInSelect : values.slice(3,values.length)
+      });
+    },
+
+    changelangDst(data){
+      model.samPresent({
+        do : 'changelangDst',
+        changedlangDst : data.value
+      });
+    },
+
+    changelangSrc(data){
+      model.samPresent({
+        do : 'changelangSrc',
+        changedlangSrc : data.value
+      });
+    },
+
+    switchLang(){
+      if ((model.request.languagesDst.indexOf(model.request.langSrc) != -1) & (model.request.languagesSrc.indexOf(model.request.langDst) != -1)) {
+        model.samPresent({
+          do:'switchLang',
+          switchedLangSrc : model.request.langDst,
+          switchedLangDst : model.request.langSrc
+          });
+      }else {
+        console.log("switch impossible !");
+      }
+
+    },
+
+    addTranslation(data){
+      if (!data.error) {
+        const language = languages[data.languageDst].toLowerCase();
+        model.samPresent({
+          do: 'addTranslation',
+          newTranslation : [data.languageSrc,data.expression,data.languageDst,data.translatedExpr]
+        });
+      } else {
+        console.log('Service de traduction indisponible...');
+      }
+      actions.tabsUpdate();
+    },
+
+    translate(){
+      googleTranslation(model.request.expression, model.request.langSrc, model.request.langDst, actions.addTranslation );
+    },
+
+    changeTransDescription(data){
+      model.samPresent({
+        do: 'changeTransDescription',
+        newDescription : data.value
+      });
+    },
+
+    markLine(data){
+      console.log(data.checked);
+      if (data.checked) {
+        console.log(data.index);
+        model.samPresent({
+          do:'addMark',
+          indexToAdd : data.index
+        });
+
+      }else {
+        console.log(data.index);
+        model.samPresent({
+          do:'rmvMark',
+          indexToRmv : data.index
+        });
+    }
+    },
+
+    removeTranslation(){
+      model.samPresent({
+        do:'removeTranslation',
+        newTranslations : model.marked.indexs
+      })
+    },
+
+    removeAllTrad(){
+      let res = confirm("Tout supprimer ?");
+      if (res) {
+        model.samPresent({
+          do:'removeAllTrad',
+          emptyTrad : []
+        });
+      }
+      actions.tabsUpdate();
+    },
+
+    changeNumPerP(data){
+      model.samPresent({
+        do : 'changeNumPerP',
+        newNumPerP : data.value
       });
     },
   // TODO: Ajouter les autres actions...
@@ -132,9 +227,11 @@ model = {
     // TODO: propriétés pour trier les colonnes
   },
   marked: {
-    // TODO: propriétés pour les lignes marquées pour suppression
+    indexs : [],
   },
   pagination: {
+    pages: [],
+    tradPerP: '',
     // TODO: propriétés pour gérer la pagination
   },
   app: {
@@ -167,12 +264,67 @@ model = {
         this.tabs.tabsInSelect = data.tabsInSelect;
         break;
 
+      case 'changelangDst':
+        this.request.langDst = data.changedlangDst;
+        break;
+
+      case 'changelangSrc':
+        this.request.langSrc = data.changedlangSrc;
+        break;
+
+      case 'switchLang':
+        this.request.langDst = data.switchedLangDst;
+        this.request.langSrc = data.switchedLangSrc;
+        break;
+
+      case 'changeTransDescription':
+        this.request.expression = data.newDescription;
+        console.log(this.request.expression);
+        break;
+
+      case 'addTranslation':
+        this.translations.values.push(data.newTranslation);
+        break;
+
+      case 'addMark':
+        this.marked.indexs.push(data.indexToAdd);
+        this.marked.indexs.sort();
+        console.log(this.marked.indexs);
+        break;
+
+      case 'rmvMark':
+        this.marked.indexs.splice(this.marked.indexs.indexOf(data.indexToRmv),1);
+        console.log(this.marked.indexs);
+        break;
+
+      case 'removeTranslation':
+        model.marked.indexs.forEach((v,i,a)=> {
+          if (data.newTranslations.lenght == 1) {
+            model.translations.values.splice(model.marked.indexs[i],1)
+          }else {
+            model.translations.values.splice(model.marked.indexs[i]-(i),1)
+          }
+
+        });
+        model.marked.indexs = [];
+        break;
+
+      case 'removeAllTrad':
+        this.translations.values = data.emptyTrad;
+        break;
+
+      case 'changeNumPerP':
+        this.pagination.tradPerP = data.newNumPerP;
+        console.log(this.pagination.tradPerP);
+        break;
+
       default:
         console.error(`model.samPresent(), unknown do: '${data.do}' `);
     }
 
     // Demande à l'état de l'application de prendre en compte la modification
     // du modèle
+
     state.samUpdate(this);
   },
 
@@ -249,7 +401,7 @@ view = {
             <button class="btn btn-primary">Charger</button>
             <button class="btn btn-ternary">Enregistrer</button>
             <button class="btn btn-secondary">Préférences</button>
-            <button onclick="actions.makeTabs()" class="btn btn-primary">À propos</button>
+            <button class="btn btn-primary">À propos</button>
           </div>
         </div>
       </div>
@@ -298,6 +450,25 @@ view = {
   },
 
   requestUI(model,state) {
+    let selected,langVers,langDepuis;
+    langVers = model.request.languagesDst.map((v,i,a)=>{
+      if(v==model.request.langDst){
+        selected='selected="selected"'
+      }else{
+            selected=''
+          };
+            return `<option ${selected} value="${v}">${languages[v]}</option>`
+          });
+
+    langDepuis = model.request.languagesSrc.map((v,i,a)=>{
+      if(v==model.request.langSrc){
+        selected='selected="selected"'
+      }else{
+        selected=''
+      }
+      ;return `<option ${selected} value="${v}">${languages[v]}</option>`
+      });
+
     return`
     <section id="request">
       <form action="">
@@ -307,36 +478,27 @@ view = {
               <div class="col-sm-3 col-5">
                 <div class="form-group">
                   <label for="selectFrom">Depuis</label>
-                  <select class="custom-select" id="selectFrom">
-                    <option selected="selected" value="fr">Français</option>
-                    <option value="en">Anglais</option>
-                    <option value="es">Espagnol</option>
+                  <select onchange="actions.changelangSrc({value : value})" class="custom-select" id="selectFrom">
+                    ${langDepuis}
                   </select>
                 </div>
               </div>
               <div class="form-group col-sm-1 col-2">
-                <button class="btn btn-secondary" type="button">⇄</button>
+                <button onclick="actions.switchLang()" class="btn btn-secondary" type="button">⇄</button>
               </div>
               <div class="col-sm-3 col-5">
                 <div class="form-group">
                   <label for="selectTo">Vers</label>
-                  <select class="custom-select" id="selectTo">
-                    <option value="fr">Français</option>
-                    <option selected="selected" value="en">Anglais</option>
-                    <option value="es">Espagnol</option>
-                    <option value="it">Italien</option>
-                    <option value="ar">Arabe</option>
-                    <option value="eo">Espéranto</option>
-                    <option value="ja">Japonais</option>
-                    <option value="zh">Chinois</option>
+                  <select onchange="actions.changelangDst({value : value})" class="custom-select" id="selectTo">
+                    ${langVers.join('\n')}
                   </select>
                 </div>
               </div>
               <div class="col-sm-5 col-12">
                 <div class="input-group mb-3">
-                  <input value="" id="expressionText" type="text" class="form-control" placeholder="Expression..." />
+                  <input value="${model.request.expression}" id="expressionText" type="text" class="form-control" onchange="actions.changeTransDescription({value: value})" placeholder="Expression..." />
                   <div class="input-group-append">
-                    <button class="btn btn-primary" type="button">Traduire</button>
+                    <button onclick="actions.translate()" class="btn btn-primary" type="button">Traduire</button>
                   </div>
                 </div>
               </div>
@@ -349,7 +511,7 @@ view = {
   },
 
   transGeneration(model,state){
-    let translations=[],text1,text2;
+    let translations=[],text1,text2,checked;
     for (let i = 0; i < model.translations.values.length; i++) {
       if (model.translations.values[i][0] == 'ar') {
         text1 = 'class="text-right"'
@@ -362,6 +524,12 @@ view = {
       }else {
         text2 = 'class="text-left"'
       }
+      if (model.marked.indexs.includes(i)) {
+        checked = 'checked="checked"';
+      }else {
+        checked = '';
+      }
+
       translations[i] = `<tr>
         <td class="text-center text-secondary"> ${i} </td>
         <td class="text-center">
@@ -374,7 +542,7 @@ view = {
         <td ${text2}>${model.translations.values[i][3].toLowerCase()}</td>
         <td class="text-center">
           <div class="form-check">
-            <input type="checkbox" class="form-check-input" />
+            <input onclick="actions.markLine({index : ${i}, checked : checked})" type="checkbox" class="form-check-input" ${checked}/>
           </div>
         </td>
       </tr>`
@@ -384,7 +552,18 @@ view = {
   },
 
   translationsUI(model,state) {
+    let pageSelect,pageNum = [];
     let translations = view.transGeneration(model,state);
+    for (var i = 0; i < 3; i++) {
+      if ((i+1)*3 == model.pagination.tradPerP) {
+        pageSelect = 'selected="selected"';
+      }else {
+        pageSelect = '';
+      }
+      pageNum[i] = `<option ${pageSelect} value="${(i+1)*3}">${(i+1)*3}</option>`;
+    }
+
+
     return`
     <section id="translations">
       <fieldset>
@@ -409,7 +588,7 @@ view = {
               </th>
               <th class="align-middle text-center col-1">
                 <div class="btn-group">
-                  <button class="btn btn-ternary">Suppr.</button>
+                  <button onclick="actions.removeTranslation()" class="btn btn-ternary">Suppr.</button>
                 </div>
               </th>
             </thead>
@@ -418,13 +597,45 @@ view = {
               <td colspan="5" class="align-middle text-center"> </td>
               <td class="align-middle text-center">
                 <div class="btn-group">
-                  <button class="btn btn-secondary">Suppr. tous</button>
+                  <button onclick="actions.removeAllTrad()" class="btn btn-secondary">Suppr. tous</button>
                 </div>
               </td>
             </tr>
 
             </table>
           </div>
+
+
+          <section id="pagination">
+            <div class="row justify-content-center">
+
+              <nav class="col-auto">
+                <ul class="pagination">
+                  <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">Précédent</a>
+                  </li>
+                  <li class="page-item active">
+                    <a class="page-link" href="#">1</a>
+                  </li>
+                  <li class="page-item disabled">
+                    <a class="page-link" href="#">Suivant</a>
+                  </li>
+                </ul>
+              </nav>
+
+              <div class="col-auto">
+                <div class="input-group mb-3">
+                  <select onclick="actions" class="custom-select" id="selectTo">
+                    ${pageNum}
+                  </select>
+                  <div class="input-group-append">
+                    <span class="input-group-text">par page</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
 
         </fieldset>
       </section>

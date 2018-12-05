@@ -46,8 +46,6 @@ void movie_handle_mvp(movie_t movie, float price);
 */
 void movie_handle_mvpge(movie_t movie, float price);
 /**
-2711/2018 Techniques de programmation - Projet - VRSP 4/7
-versité de Pau et des Pays de l’Adour L2 informatique
 * Handles the mvpgt command for a movie.
 * \param movie The movie.
 * \param price The movie renting price.
@@ -95,4 +93,3 @@ void movie_handle_mvyle(movie_t movie, int year);
 * \param year The movie release year.
 */
 void movie_handle_mvylt(movie_t movie, int year);
-#
