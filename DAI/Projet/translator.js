@@ -142,10 +142,7 @@ actions = {
       } else {
         console.log('Service de traduction indisponible...');
       }
-<<<<<<< HEAD
       actions.tabsUpdate();
-=======
->>>>>>> 2cfeb4a6869bba9678f33046155c507c8440b2d6
     },
 
     translate(){
@@ -183,7 +180,6 @@ actions = {
         newTranslations : model.marked.indexs
       })
     },
-<<<<<<< HEAD
 
     removeAllTrad(){
       let res = confirm("Tout supprimer ?");
@@ -202,8 +198,6 @@ actions = {
         newNumPerP : data.value
       });
     },
-=======
->>>>>>> 2cfeb4a6869bba9678f33046155c507c8440b2d6
   // TODO: Ajouter les autres actions...
 };
 
@@ -315,7 +309,6 @@ model = {
         model.marked.indexs = [];
         break;
 
-<<<<<<< HEAD
       case 'removeAllTrad':
         this.translations.values = data.emptyTrad;
         break;
@@ -325,8 +318,6 @@ model = {
         console.log(this.pagination.tradPerP);
         break;
 
-=======
->>>>>>> 2cfeb4a6869bba9678f33046155c507c8440b2d6
       default:
         console.error(`model.samPresent(), unknown do: '${data.do}' `);
     }
