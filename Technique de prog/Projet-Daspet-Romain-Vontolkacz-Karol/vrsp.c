@@ -2,32 +2,46 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <libxml/xmlmemory.h>
+#include <libxml/parser.h>
 
 int main(int argc, char *argv[]) {
-  FILE *file = NULL;
-  int ret = EOF;
-  char buf[10] = "\0";
-  char comm[5] = "\0";
+  xmlDocPtr doc;
+  xmlNodePtr cur;
   if (argc != 2) {
     fprintf(stderr, "invalid number of arguments\n");
     return 1;
   }
-  file = fopen(argv[1],"r");
-  if (file == NULL) {
-    fprintf(stderr, "I/O warning : failed to load external entity \"%s\"\n", argv[1]);
-    return 1;
-  }
-  if (ferror(file)) {
+
+  if (argc != 2) {
+    fprintf(stderr, "invalid number of arguments\n");
     return 1;
   }
 
-  printf("VRSP>");
-  scanf("%c\n",comm);
+  doc = xmlParseFile(argv[1]);
 
-
-  ret = fclose(file);
-  if (ret == EOF) {
+  if (doc == NULL ) {
+    fprintf(stderr,"Document not parsed successfully. \n");
     return 1;
   }
+
+  cur = xmlDocGetRootElement(doc);
+
+  if (cur == NULL) {
+    fprintf(stderr,"empty document\n");
+    xmlFreeDoc(doc);
+    return 1;
+  }
+
+cur = cur->xmlChildrenNode;
+
+printf("%s\n", xmlGetProp(cur , (const xmlChar *) "name" ));
+printf("%s\n", xmlGetProp(cur , (const xmlChar *) "name" ));
   return 0;
 }
+
+/*xmlgetprop pour atribut du noeud
+mxlnodelistgetstring pour la chaine de cara du entre les balises
+xmlstrcmm compare deux chaine de cara xml
+xmlDocGetRootElement pour le premier noeud*/
