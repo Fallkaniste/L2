@@ -75,6 +75,8 @@ actions = {
       languagesSrc: data.languagesSrc,
       languagesDst: data.languagesDst,
       translations: data.translations,
+      tradPerP : 3,
+      currPage : 0,
     });
   },
 
@@ -143,6 +145,7 @@ actions = {
         console.log('Service de traduction indisponible...');
       }
       actions.tabsUpdate();
+      actions.pagesUpdate();
     },
 
     translate(){
@@ -179,6 +182,8 @@ actions = {
         do:'removeTranslation',
         newTranslations : model.marked.indexs
       })
+      actions.tabsUpdate();
+      action.pagesUpdate();
     },
 
     removeAllTrad(){
@@ -190,12 +195,41 @@ actions = {
         });
       }
       actions.tabsUpdate();
+      action.pagesUpdate();
+    },
+
+    pagesUpdate(){
+      model.samPresent({
+          do:'pagesUpdate',
+          numOfPages : Math.trunc(model.translations.values.length/model.pagination.tradPerP)+1,
+      });
     },
 
     changeNumPerP(data){
       model.samPresent({
         do : 'changeNumPerP',
         newNumPerP : data.value
+      });
+    },
+
+    changePage(data){
+      model.samPresent({
+        do : 'changePage',
+        newCurrPage : data.value,
+      });
+    },
+
+    nextPage(data){
+      model.samPresent({
+        do :'changePage',
+        newCurrPage : data.value+1,
+      });
+    },
+
+    prevPage(data){
+      model.samPresent({
+        do :'changePage',
+        newCurrPage : data.value-1,
       });
     },
   // TODO: Ajouter les autres actions...
@@ -230,14 +264,15 @@ model = {
     indexs : [],
   },
   pagination: {
-    pages: [],
+    currPage: '',
     tradPerP: '',
+    numOfPages: ''
     // TODO: propriétés pour gérer la pagination
   },
   app: {
     authors: '',
     mode: 'main',    // in ['main', 'lang']
-    sectionId: 'app',
+    sectionId: 'app'
   },
 
   // Demande au modèle de se mettre à jour en fonction des données qu'on
@@ -255,8 +290,14 @@ model = {
         this.request.langSrc = data.langSrc;
         this.request.langDst = data.langDst;
         this.translations.values = data.translations;
+        this.pagination.tradPerP = data.tradPerP;
+        this.pagination.numOfPages = Math.trunc(model.translations.values.length/model.pagination.tradPerP)+1;
+        this.pagination.currPage = data.currPage
         break;
 
+      case 'pagesUpdate':
+        this.pagination.numOfPages = data.numOfPages;
+        break;
 
       case 'makeTabs':
         this.tabs.values = data.values;
@@ -315,8 +356,18 @@ model = {
 
       case 'changeNumPerP':
         this.pagination.tradPerP = data.newNumPerP;
+        this.pagination.numOfPages = Math.trunc(model.translations.values.length/model.pagination.tradPerP)+1;
         console.log(this.pagination.tradPerP);
+        console.log(this.pagination.numOfPages);
         break;
+
+      case 'changePage':
+        this.pagination.currPage = data.newCurrPage;
+        break;
+
+
+
+
 
       default:
         console.error(`model.samPresent(), unknown do: '${data.do}' `);
@@ -511,7 +562,7 @@ view = {
   },
 
   transGeneration(model,state){
-    let translations=[],text1,text2,checked;
+    let translations=[],text1,text2,checked,finalTranslations=[];
     for (let i = 0; i < model.translations.values.length; i++) {
       if (model.translations.values[i][0] == 'ar') {
         text1 = 'class="text-right"'
@@ -548,13 +599,25 @@ view = {
       </tr>`
     }
 
-    return(translations.join('\n'))
+
+    if (translations.length > model.pagination.tradPerP) {
+      for (let i = 0; i < Math.trunc(translations.length/model.pagination.tradPerP); i++) {
+        for (let k = 0; k < model.pagination.tradPerP; k++) {
+          finalTranslations.push(translations.splice(i,i+model.pagination.tradPerP));
+        }
+      }
+    }else {
+      finalTranslations = [translations];
+    }
+
+
+    return(finalTranslations);
   },
 
   translationsUI(model,state) {
-    let pageSelect,pageNum = [];
+    let pageSelect,pageNum = [],pageNumber=[];
     let translations = view.transGeneration(model,state);
-    for (var i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i++) {
       if ((i+1)*3 == model.pagination.tradPerP) {
         pageSelect = 'selected="selected"';
       }else {
@@ -562,7 +625,13 @@ view = {
       }
       pageNum[i] = `<option ${pageSelect} value="${(i+1)*3}">${(i+1)*3}</option>`;
     }
-
+    console.log(model.pagination.numOfPages);
+    for (var i = 0; i < model.pagination.numOfPages; i++) {
+      pageNumber[i]= `<li class="page-item active">
+        <a onclick="actions.changePage({value : ${i}})" class="page-link" >${i+1}</a>
+      </li>`
+    }
+    console.log(model.pagination.currPage);
 
     return`
     <section id="translations">
@@ -592,7 +661,7 @@ view = {
                 </div>
               </th>
             </thead>
-              ${translations}
+              ${translations[model.pagination.currPage].join('\n')}
             <tr>
               <td colspan="5" class="align-middle text-center"> </td>
               <td class="align-middle text-center">
@@ -612,20 +681,18 @@ view = {
               <nav class="col-auto">
                 <ul class="pagination">
                   <li class="page-item disabled">
-                    <a class="page-link" href="#" tabindex="-1">Précédent</a>
+                    <a onclick="actions.prevPage({value : ${model.pagination.currPage}})" class="page-link" tabindex="-1">Précédent</a>
                   </li>
-                  <li class="page-item active">
-                    <a class="page-link" href="#">1</a>
-                  </li>
+                  ${pageNumber}
                   <li class="page-item disabled">
-                    <a class="page-link" href="#">Suivant</a>
+                    <a onclick="actions.nextPage({value : ${model.pagination.currPage}})" class="page-link" href="#">Suivant</a>
                   </li>
                 </ul>
               </nav>
 
               <div class="col-auto">
                 <div class="input-group mb-3">
-                  <select onclick="actions" class="custom-select" id="selectTo">
+                  <select onchange="actions.changeNumPerP({value : value})" class="custom-select" id="selectTo">
                     ${pageNum}
                   </select>
                   <div class="input-group-append">
