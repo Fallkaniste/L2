@@ -14,10 +14,8 @@ int vrs_add_movie(vrs_t *vrs, movie_t *movie){
 }
 vrs_t *vrs_create(){
   vrs_t *vrs = malloc(sizeof(vrs_t));
-  if (vrs == NULL) {
-   fprintf(stderr, "the memory allocation is a failure\n");
-  }
-  return 0;
+  return vrs;
+
 }
 void vrs_free(vrs_t *vrs){
   free(vrs);
