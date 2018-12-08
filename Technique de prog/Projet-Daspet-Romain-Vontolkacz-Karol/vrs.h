@@ -38,7 +38,7 @@ void vrs_free(vrs_t *vrs);
 /**
 * Handles the addr command for a VRS.
 * \param vrs The VRS.
-*/Rent a video, 1 rue Richelieu, 64000, Pau
+Rent a video, 1 rue Richelieu, 64000, Pau*/
 void vrs_handle_addr(vrs_t vrs);
 /**
 * Handles the mv command for all the movies of a VRS.

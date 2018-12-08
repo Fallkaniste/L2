@@ -93,3 +93,5 @@ void movie_handle_mvyle(movie_t movie, int year);
 * \param year The movie release year.
 */
 void movie_handle_mvylt(movie_t movie, int year);
+
+#endif
