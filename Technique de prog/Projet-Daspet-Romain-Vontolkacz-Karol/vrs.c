@@ -4,16 +4,19 @@
 int i;
 
 int vrs_add_movie(vrs_t *vrs, movie_t *movie){
-  vrs -> nmovies ++;
-	vrs -> movies = realloc(vrs -> movies,sizeof(movie_t)*vrs -> nmovies);
+    vrs -> nmovies ++;
+    	vrs -> movies = realloc((vrs -> movies),(sizeof(movie_t*))*(vrs -> nmovies));
   if (vrs -> movies == NULL) {
     return -1;
   }
-	vrs -> movies[vrs -> nmovies-1] = movie;
+	vrs -> movies[(vrs -> nmovies)-1] = movie;
   return 0;
 }
+
 vrs_t *vrs_create(){
   vrs_t *vrs = malloc(sizeof(vrs_t));
+  vrs ->nmovies = 0;
+  vrs ->movies = malloc(sizeof(movie_t*));
   return vrs;
 
 }
@@ -25,11 +28,12 @@ void vrs_handle_addr(vrs_t vrs){
   printf("%s, %s, %d, %s\n",vrs.name, vrs.street, vrs.postal_code, vrs.city);
 }
 void vrs_handle_mv(vrs_t vrs){
-  for (i = 0; i < vrs.nmovies-1; i++) {
-    movie_handle_mv(*(vrs.movies)[i]);
+  for (i = 0; i < vrs.nmovies; i++) {
+    movie_handle_mv(*(vrs.movies[i]));
   }
 }
 void vrs_handle_mvn(vrs_t vrs, const char *name){
+  printf("test\n");
   for (i = 0; i < vrs.nmovies-1; i++) {
     movie_handle_mvn(*(vrs.movies)[i],name);
   }
