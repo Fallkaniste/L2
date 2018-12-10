@@ -24,16 +24,13 @@ void split(char* saisie,char* arg,char* command){
         i++;
     } while(saisie[i] != ' ');
     i++;
-    printf("%s\n", saisie);
-    printf("%lu\n", strlen(saisie));
+
     for (j = 0; i < strlen(saisie)-1; j++) {
-      printf("%d\n", i);
       arg[j] = saisie[i];
       i++;
     }
-    printf("%s:\n", command);
-    printf("%s:\n", arg);
-  }
+  }else{
+    }
 
 
 
@@ -61,7 +58,7 @@ void print_help(){
 void buildVrsMovies(xmlDocPtr doc,xmlNodePtr cur, vrs_t *vrs){
   movie_t *movie = movie_create();
   xmlNodePtr aux;
-  char*p_conv;
+  char*p_conv = malloc(sizeof(double));
   cur = cur->xmlChildrenNode;
   cur = cur->next;
 for(i = 0 ; i<9 ; i++){
@@ -136,9 +133,6 @@ int main(int argc, char *argv[]) {
     printf("VRSP>");
     fgets(saisie,100,stdin);
     split(saisie,arg,command);
-    printf("%s\n", command);
-    printf("%s\n", arg);
-    printf("%d\n", (strcmp(command,"mvn") == 10));
     if ((strcmp(saisie,"addr") == 10)) {
       vrs_handle_addr(*vrs);
     }
@@ -146,37 +140,46 @@ int main(int argc, char *argv[]) {
       print_help();
     }
     if ((strcmp(saisie,"mv") == 10)) {
-      printf("test\n" );
       vrs_handle_mv(*vrs);
     }
     if ((strcmp(command,"mvn") == 0)) {
-      printf("tes\n");
       vrs_handle_mvn(*vrs,arg);
     }
-    if ((strcmp(command,"mvp") == 10)) {
+    if ((strcmp(command,"mvp") == 0)) {
+      vrs_handle_mvp(*vrs,(float)strtod(arg,&p_conv));
     }
-    if ((strcmp(command,"mvpeg") == 10)) {
+    if ((strcmp(command,"mvpeg") == 0)) {
+      vrs_handle_mvpge(*vrs,(float)strtod(arg,&p_conv));
     }
-    if ((strcmp(command,"mvpgt") == 10)) {
+    if ((strcmp(command,"mvpgt") == 0)) {
+      vrs_handle_mvpgt(*vrs,(float)strtod(arg,&p_conv));
     }
-    if ((strcmp(command,"mvple") == 10)) {
+    if ((strcmp(command,"mvple") == 0)) {
+      vrs_handle_mvple(*vrs,(float)strtod(arg,&p_conv));
     }
-    if ((strcmp(command,"mvplt") == 10)) {
+    if ((strcmp(command,"mvplt") == 0)) {
+      vrs_handle_mvplt(*vrs,(float)strtod(arg,&p_conv));
     }
-    if ((strcmp(command,"mvy") == 10)) {
+    if ((strcmp(command,"mvy") == 0)) {
+      vrs_handle_mvy(*vrs,(int)strtol(arg,&p_conv,10));
     }
-    if ((strcmp(command,"mvyge") == 10)) {
+    if ((strcmp(command,"mvyge") == 0)) {
+      vrs_handle_mvyge(*vrs,(int)strtol(arg,&p_conv,10));
     }
-    if ((strcmp(command,"mvygt") == 10)) {
+    if ((strcmp(command,"mvygt") == 0)) {
+      vrs_handle_mvygt(*vrs,(int)strtol(arg,&p_conv,10));
     }
-    if ((strcmp(command,"mvyle") == 10)) {
+    if ((strcmp(command,"mvyle") == 0)) {
+      vrs_handle_mvyle(*vrs,(int)strtol(arg,&p_conv,10));
     }
-    if ((strcmp(command,"mvylt") == 10)) {
+    if ((strcmp(command,"mvylt") == 0)) {
+      vrs_handle_mvylt(*vrs,(int)strtol(arg,&p_conv,10));
     }
     if ((strcmp(saisie,"version") == 10)) {
+      printf("VRSP (Video Rental Shop Program) 20181210\n\n");
+      printf("Copyright (C) 2018 Daspet Romain and Vontolkacz Karol.\n\n");
+      printf("Written by Daspet Romain <daspet.romain@univ-pau.fr> and Vontolkacz Karol <vontolkacz.karol@univ-pau.fr>.\n");
     }
-    arg = NULL;
-    command = NULL;
 
   }
   free(arg);

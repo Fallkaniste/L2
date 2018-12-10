@@ -33,58 +33,58 @@ void vrs_handle_mv(vrs_t vrs){
   }
 }
 void vrs_handle_mvn(vrs_t vrs, const char *name){
-  printf("test\n");
-  for (i = 0; i < vrs.nmovies-1; i++) {
+
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvn(*(vrs.movies)[i],name);
   }
 }
 void vrs_handle_mvp(vrs_t vrs, float price){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvp(*(vrs.movies)[i],price);
   }
 }
 void vrs_handle_mvpge(vrs_t vrs, float price){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvpge(*(vrs.movies)[i],price);
   }
 }
 void vrs_handle_mvpgt(vrs_t vrs, float price){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvpgt(*(vrs.movies)[i],price);
   }
 }
 void vrs_handle_mvple(vrs_t vrs, float price){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvple(*(vrs.movies)[i],price);
   }
 }
 void vrs_handle_mvplt(vrs_t vrs, float price){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvplt(*(vrs.movies)[i],price);
   }
 }
 void vrs_handle_mvy(vrs_t vrs, int year){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvy(*(vrs.movies)[i],year);
   }
 }
 void vrs_handle_mvyge(vrs_t vrs, int year){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvyge(*(vrs.movies)[i],year);
   }
 }
 void vrs_handle_mvygt(vrs_t vrs, int year){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvygt(*(vrs.movies)[i],year);
   }
 }
 void vrs_handle_mvyle(vrs_t vrs, int year){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvyle(*(vrs.movies)[i],year);
   }
 }
 void vrs_handle_mvylt(vrs_t vrs, int year){
-  for (i = 0; i < vrs.nmovies-1; i++) {
+  for (i = 0; i < vrs.nmovies; i++) {
     movie_handle_mvylt(*(vrs.movies)[i],year);
   }
 }
