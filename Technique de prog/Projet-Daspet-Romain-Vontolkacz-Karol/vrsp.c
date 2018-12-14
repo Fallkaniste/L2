@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
-#include "vrs.c"
-#include "movie.c"
+#include "vrs.h"
+#include "movie.h"
 int i,j;
 
 void split(char* saisie,char* arg,char* command){
@@ -30,6 +30,8 @@ void split(char* saisie,char* arg,char* command){
       i++;
     }
   }else{
+    arg = "";
+    command = "";
     }
 
 
@@ -148,7 +150,7 @@ int main(int argc, char *argv[]) {
     if ((strcmp(command,"mvp") == 0)) {
       vrs_handle_mvp(*vrs,(float)strtod(arg,&p_conv));
     }
-    if ((strcmp(command,"mvpeg") == 0)) {
+    if ((strcmp(command,"mvpge") == 0)) {
       vrs_handle_mvpge(*vrs,(float)strtod(arg,&p_conv));
     }
     if ((strcmp(command,"mvpgt") == 0)) {
