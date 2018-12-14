@@ -29,9 +29,11 @@ void split(char* saisie,char* arg,char* command){
       arg[j] = saisie[i];
       i++;
     }
+
   }else{
-    arg = "";
-    command = "";
+    for ( i = 0; i < strlen(saisie); i++) {
+      command[i] = saisie[i];
+    }
     }
 
 
@@ -138,10 +140,10 @@ int main(int argc, char *argv[]) {
     if ((strcmp(saisie,"addr") == 10)) {
       vrs_handle_addr(*vrs);
     }
-    if ((strcmp(saisie,"help") == 10)) {
+    if ((strcmp(command,"help") == 10)) {
       print_help();
     }
-    if ((strcmp(saisie,"mv") == 10)) {
+    if ((strcmp(command,"mv") == 10)) {
       vrs_handle_mv(*vrs);
     }
     if ((strcmp(command,"mvn") == 0)) {
@@ -177,7 +179,7 @@ int main(int argc, char *argv[]) {
     if ((strcmp(command,"mvylt") == 0)) {
       vrs_handle_mvylt(*vrs,(int)strtol(arg,&p_conv,10));
     }
-    if ((strcmp(saisie,"version") == 10)) {
+    if ((strcmp(command,"version") == 10)) {
       printf("VRSP (Video Rental Shop Program) 20181210\n\n");
       printf("Copyright (C) 2018 Daspet Romain and Vontolkacz Karol.\n\n");
       printf("Written by Daspet Romain <daspet.romain@univ-pau.fr> and Vontolkacz Karol <vontolkacz.karol@univ-pau.fr>.\n");
