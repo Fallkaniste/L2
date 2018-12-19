@@ -23,7 +23,7 @@ function go() {
   };
 
   actions.initAndGo(data);
-  actions.tabsUpdate();
+  actions.tabsUpdate(model);
 
 }
 
@@ -80,10 +80,10 @@ actions = {
     });
   },
 
-  tabsUpdate() {
+  tabsUpdate(data) {
   let values = [], tab = [];
-  for (let i = 0; i < model.translations.values.length; i++) {
-    model.translations.values[i].forEach( (v,j,a)=>{
+  for (let i = 0; i < data.translations.values.length; i++) {
+    data.translations.values[i].forEach( (v,j,a)=>{
       if ((j%2 == 0)) {
         if((!tab.includes(v))) {
           tab.push(v);
@@ -99,7 +99,8 @@ actions = {
     });
   }
   values.sort((a,b)=>b.occ-a.occ);
-    model.samPresent({
+  console.table(values);
+    data.samPresent({
       do:'makeTabs',
       values : values,
       tabsIn : values.slice(0,3),
@@ -144,7 +145,7 @@ actions = {
       } else {
         console.log('Service de traduction indisponible...');
       }
-      actions.tabsUpdate();
+      actions.tabsUpdate(model);
       actions.pagesUpdate();
     },
 
@@ -182,8 +183,9 @@ actions = {
         do:'removeTranslation',
         newTranslations : model.marked.indexs
       })
-      actions.tabsUpdate();
-      action.pagesUpdate();
+      actions.tabsUpdate(model);
+      actions.pagesUpdate();
+      actions.tabClicked({index : model.selectedTab});
     },
 
     removeAllTrad(){
@@ -194,7 +196,7 @@ actions = {
           emptyTrad : []
         });
       }
-      actions.tabsUpdate();
+      actions.tabsUpdate(model);
       action.pagesUpdate();
     },
 
@@ -227,9 +229,38 @@ actions = {
     },
 
     prevPage(data){
+
       model.samPresent({
         do :'changePage',
         newCurrPage : data.value-1,
+      });
+    },
+
+    tabClicked(data){
+      model.selectedTab = data.index;
+      state.selectedTab = data.index;
+      let lang = model.tabs.values[data.index].language;
+      console.log(model.tabs.values[data.index].language);
+      let values =[];
+      model.translations.values.forEach((v,i,a)=>{
+        if (languages[v[0]] == lang | languages[v[2]] == lang) {
+          return values.push(v);
+        }
+      });
+      console.log(values);
+      state.samPresent({
+
+        do : 'tabClicked',
+        isOn : true,
+        values : values,
+      });
+      actions.tabsUpdate(state);
+    },
+
+    FirstTabClick(){
+      state.samPresent({
+        do : 'FirstTabClicked',
+        isOn : false,
       });
     },
   // TODO: Ajouter les autres actions...
@@ -240,9 +271,10 @@ actions = {
 //
 model = {
   tabs: {
+    selectedTab : "",
     values :[],
     tabsIn: [],
-    tabsInSelect: [],
+    tabsInSelect: []
 
   },
   request: {
@@ -368,7 +400,6 @@ model = {
 
 
 
-
       default:
         console.error(`model.samPresent(), unknown do: '${data.do}' `);
     }
@@ -385,13 +416,36 @@ model = {
 //
 state = {
   tabs: {
-    values : model.tabs.values,
-    tabsIn : model.tabs.tabsIn,
-    tabsInSelect : model.tabs.tabsInSelect
+    selectedTab : "",
+    values : [],
+    tabsIn : [],
+    tabsInSelect :[]
   },
   translations: {
-    // TODO: données de traductions déduites de model (par langue notamment)
+    isOn : false,
+    values : [],
   },
+    samPresent(data) {
+      switch (data.do) {
+        case 'makeTabs':
+          this.tabs.values = data.values;
+          this.tabs.tabsIn = data.tabsIn;
+          this.tabs.tabsInSelect = data.tabsInSelect;
+          break;
+
+        case 'tabClicked':
+          state.translations.isOn = data.isOn;
+          state.translations.values = data.values;
+
+          break;
+
+        case 'FirstTabClicked':
+          state.translations.isOn = data.isOn;
+          break;
+
+      }
+      state.samUpdate(model);
+    },
 
   samUpdate(model) {
 
@@ -403,12 +457,21 @@ state = {
   samRepresent(model) {
 
     let representation = '';
+    let tabsUI,translationsUI,requestUI = "";
 
     let headerUI = view.headerUI(model,state);
-    let tabsUI = view.tabsUI(model,state);
-    let requestUI = view.requestUI(model,state);
-    let translationsUI = view.translationsUI(model,state);
 
+
+    if (state.translations.isOn) {
+        tabsUI = view.tabsUI(state);
+        translationsUI = view.translationsUI(state);
+    }else {
+        requestUI = view.requestUI(model,state);
+        tabsUI = view.tabsUI(model);
+        translationsUI = view.translationsUI(model);
+    }
+
+    console.log(state.translations.isOn);
     representation += headerUI + tabsUI + requestUI + translationsUI;
 
     // TODO: la représentation de l'interface est différente selon
@@ -460,17 +523,17 @@ view = {
     `;
   },
 
-  tabsUI(model,state) {
+  tabsUI(data) {
     let tabsIn=[],tabsInSelect=[];
     for (let i = 0 ; i < model.tabs.tabsIn.length ; i++) {
       tabsIn[i]=`<li class="nav-item">
-        <a class="nav-link " href="#">${model.tabs.tabsIn[i].language}
+        <a onclick="actions.tabClicked({index : ${i}})" class="nav-link " href="#">${model.tabs.tabsIn[i].language}
           <span class="badge badge-primary">${model.tabs.tabsIn[i].occ}</span>
         </a>
       </li>`
     }
 
-    for (var i = 0; i < model.tabs.tabsInSelect.length; i++) {
+    for (var i = 0; i < data.tabs.tabsInSelect.length; i++) {
       tabsInSelect[i] = `<option value="es">${model.tabs.tabsInSelect[i].language} (${model.tabs.tabsInSelect[i].occ})</option>`;
     }
 
@@ -481,7 +544,7 @@ view = {
       <div class="row justify-content-start ml-1 mr-1">
         <ul class="nav nav-tabs">
           <li class="nav-item">
-            <a class="nav-link active"
+            <a onclick="actions.FirstTabClick()" class="nav-link active"
               href="#">Traductions
               <span class="badge badge-primary">${model.translations.values.length}</span>
             </a>
@@ -561,10 +624,10 @@ view = {
     `
   },
 
-  transGeneration(model,state){
+  transGeneration(data){
     let translations=[],text1,text2,checked,finalTranslations=[];
-    for (let i = 0; i < model.translations.values.length; i++) {
-      if (model.translations.values[i][0] == 'ar') {
+    for (let i = 0; i < data.translations.values.length; i++) {
+      if (data.translations.values[i][0] == 'ar') {
         text1 = 'class="text-right"'
       }else {
         text1 = 'class="text-left"'
@@ -584,13 +647,13 @@ view = {
       translations[i] = `<tr>
         <td class="text-center text-secondary"> ${i} </td>
         <td class="text-center">
-          <span class="badge badge-info">${model.translations.values[i][0]}</span>
+          <span class="badge badge-info">${data.translations.values[i][0]}</span>
         </td>
-        <td ${text1}>${model.translations.values[i][1].toLowerCase()}</td>
+        <td ${text1}>${data.translations.values[i][1].toLowerCase()}</td>
         <td class="text-center">
-          <span class="badge badge-info">${model.translations.values[i][2]}</span>
+          <span class="badge badge-info">${data.translations.values[i][2]}</span>
         </td>
-        <td ${text2}>${model.translations.values[i][3].toLowerCase()}</td>
+        <td ${text2}>${data.translations.values[i][3].toLowerCase()}</td>
         <td class="text-center">
           <div class="form-check">
             <input onclick="actions.markLine({index : ${i}, checked : checked})" type="checkbox" class="form-check-input" ${checked}/>
@@ -614,9 +677,9 @@ view = {
     return(finalTranslations);
   },
 
-  translationsUI(model,state) {
+  translationsUI(data) {
     let pageSelect,pageNum = [],pageNumber=[];
-    let translations = view.transGeneration(model,state);
+    let translations = view.transGeneration(data);
     for (let i = 0; i < 3; i++) {
       if ((i+1)*3 == model.pagination.tradPerP) {
         pageSelect = 'selected="selected"';
