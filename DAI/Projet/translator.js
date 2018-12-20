@@ -161,16 +161,15 @@ actions = {
     },
 
     markLine(data){
-      console.log(data.checked);
+
       if (data.checked) {
-        console.log(data.index);
+
         model.samPresent({
           do:'addMark',
           indexToAdd : data.index
         });
 
       }else {
-        console.log(data.index);
         model.samPresent({
           do:'rmvMark',
           indexToRmv : data.index
@@ -237,30 +236,72 @@ actions = {
     },
 
     tabClicked(data){
-      model.selectedTab = data.index;
-      state.selectedTab = data.index;
-      let lang = model.tabs.values[data.index].language;
-      console.log(model.tabs.values[data.index].language);
-      let values =[];
+      console.log(data);
+      let lang;
+      if (data.text.length == 0) {
+        lang = state.tabs.tabsInSelect[data.index].language;
+      }else {
+        lang = data.text
+      }
+      let tabsInSelect = state.tabs.tabsInSelect.map((v,i,a)=> v);
+      let tabsIn = state.tabs.tabsIn.map((v,i,a)=> v);
+      let values =[],aux;
+
       model.translations.values.forEach((v,i,a)=>{
-        if (languages[v[0]] == lang | languages[v[2]] == lang) {
+        if (languages[v[0]] == lang) {
           return values.push(v);
+        }else if(languages[v[2]] == lang){
+          values.push([v[2],v[3],v[0],v[1]]);
         }
       });
-      console.log(values);
+      if ((tabsIn.filter((v)=> v.language == lang)) != "") {
+        aux = tabsIn[data.index];
+        tabsIn[data.index] = tabsIn[0];
+        tabsIn[0] = aux;
+      }else {
+        aux = tabsInSelect[data.index];
+        tabsInSelect[data.index] = tabsIn[0];
+        tabsIn[0] = aux;
+
+      }
+
+      console.log(tabsIn);
+      console.log(tabsInSelect);
+      console.log(lang);
       state.samPresent({
+
 
         do : 'tabClicked',
         isOn : true,
-        values : values,
+        transValues : values,
+        active : lang,
+        tabsInSelect : tabsInSelect,
+        tabsIn : tabsIn,
       });
-      actions.tabsUpdate(state);
+
     },
 
     FirstTabClick(){
       state.samPresent({
         do : 'FirstTabClicked',
         isOn : false,
+        active : "Traduction",
+        tabsIn : model.tabs.tabsIn,
+      });
+    },
+
+    classTrads(data){
+      let sortedValues = model.translations.values.map(function(v,i,a){return { index: i, value: v[data.colonne-1].toLowerCase()}});
+      sortedValues.sort(function(a, b) {
+        switch (a.value > b.value) {
+          case true : return 1; break;
+          case false : return -1; break;
+          default : return 0; break;
+        }
+      });
+      model.samPresent({
+        do : 'classTrads',
+        sortedValues :sortedValues.map((v)=>model.translations.values[v.index]),
       });
     },
   // TODO: Ajouter les autres actions...
@@ -271,6 +312,7 @@ actions = {
 //
 model = {
   tabs: {
+    active : "",
     selectedTab : "",
     values :[],
     tabsIn: [],
@@ -290,6 +332,8 @@ model = {
     ],
   },
   sorted: {
+    values:[],
+    isOn:false
     // TODO: propriétés pour trier les colonnes
   },
   marked: {
@@ -335,6 +379,9 @@ model = {
         this.tabs.values = data.values;
         this.tabs.tabsIn = data.tabsIn;
         this.tabs.tabsInSelect = data.tabsInSelect;
+        state.tabs.tabsIn = data.tabsIn;
+        state.tabs.tabsInSelect = data.tabsInSelect;
+        console.log(state.tabs.tabsInSelect[0].language);
         break;
 
       case 'changelangDst':
@@ -352,7 +399,7 @@ model = {
 
       case 'changeTransDescription':
         this.request.expression = data.newDescription;
-        console.log(this.request.expression);
+
         break;
 
       case 'addTranslation':
@@ -362,12 +409,12 @@ model = {
       case 'addMark':
         this.marked.indexs.push(data.indexToAdd);
         this.marked.indexs.sort();
-        console.log(this.marked.indexs);
+
         break;
 
       case 'rmvMark':
         this.marked.indexs.splice(this.marked.indexs.indexOf(data.indexToRmv),1);
-        console.log(this.marked.indexs);
+
         break;
 
       case 'removeTranslation':
@@ -389,14 +436,17 @@ model = {
       case 'changeNumPerP':
         this.pagination.tradPerP = data.newNumPerP;
         this.pagination.numOfPages = Math.trunc(model.translations.values.length/model.pagination.tradPerP)+1;
-        console.log(this.pagination.tradPerP);
-        console.log(this.pagination.numOfPages);
         break;
 
       case 'changePage':
         this.pagination.currPage = data.newCurrPage;
         break;
 
+      case 'classTrads':
+        this.translations.values = data.sortedValues;
+        this.sorted.isOn = !this.sorted.isOn;
+        console.log(this.sorted.isOn);
+        break;
 
 
 
@@ -416,10 +466,11 @@ model = {
 //
 state = {
   tabs: {
+    active : "Traduction",
     selectedTab : "",
     values : [],
     tabsIn : [],
-    tabsInSelect :[]
+    tabsInSelect : []
   },
   translations: {
     isOn : false,
@@ -435,12 +486,18 @@ state = {
 
         case 'tabClicked':
           state.translations.isOn = data.isOn;
-          state.translations.values = data.values;
+          state.translations.values = data.transValues;
+          state.tabs.active = data.active;
+          state.tabs.values = model.tabs.values;
+          state.tabs.tabsIn = data.tabsIn;
+          state.tabs.tabsInSelect = data.tabsInSelect;
 
           break;
 
         case 'FirstTabClicked':
           state.translations.isOn = data.isOn;
+          state.tabs.active = data.active;
+          state.tabs.tabsIn = data.tabsIn;
           break;
 
       }
@@ -471,7 +528,7 @@ state = {
         translationsUI = view.translationsUI(model);
     }
 
-    console.log(state.translations.isOn);
+
     representation += headerUI + tabsUI + requestUI + translationsUI;
 
     // TODO: la représentation de l'interface est différente selon
@@ -524,17 +581,29 @@ view = {
   },
 
   tabsUI(data) {
-    let tabsIn=[],tabsInSelect=[];
+    let tabsIn=[],tabsInSelect=[],active,activTrad;
     for (let i = 0 ; i < model.tabs.tabsIn.length ; i++) {
-      tabsIn[i]=`<li class="nav-item">
-        <a onclick="actions.tabClicked({index : ${i}})" class="nav-link " href="#">${model.tabs.tabsIn[i].language}
-          <span class="badge badge-primary">${model.tabs.tabsIn[i].occ}</span>
+      if (data.tabs.active == data.tabs.tabsIn[i].language) {
+        active = 'active';
+        activTrad = "";
+      }else{
+        active = "";
+      }
+
+      console.log("active : ",active);
+      console.log("activTrad",activTrad);
+      tabsIn[i]=`<li title="${data.tabs.tabsIn[i].language}" onclick="actions.tabClicked({index : ${i}, text : title})" class="nav-item">
+        <a class="nav-link ${active}" href="#">${data.tabs.tabsIn[i].language}
+          <span class="badge badge-primary">${data.tabs.tabsIn[i].occ}</span>
         </a>
       </li>`
     }
+    if (state.tabs.active == 'Traduction') {
+      activTrad = 'active';
+    }
 
     for (var i = 0; i < data.tabs.tabsInSelect.length; i++) {
-      tabsInSelect[i] = `<option value="es">${model.tabs.tabsInSelect[i].language} (${model.tabs.tabsInSelect[i].occ})</option>`;
+      tabsInSelect[i] = `<option value="${i}" >${data.tabs.tabsInSelect[i].language} (${data.tabs.tabsInSelect[i].occ})</option>`;
     }
 
 
@@ -544,14 +613,14 @@ view = {
       <div class="row justify-content-start ml-1 mr-1">
         <ul class="nav nav-tabs">
           <li class="nav-item">
-            <a onclick="actions.FirstTabClick()" class="nav-link active"
+            <a onclick="actions.FirstTabClick()" class="nav-link ${activTrad}"
               href="#">Traductions
               <span class="badge badge-primary">${model.translations.values.length}</span>
             </a>
           </li>
           ${tabsIn.join('\n')}
           <li class="nav-item">
-            <select class="custom-select" id="selectFrom">
+            <select onchange="actions.tabClicked({index : value, text : ''})" class="custom-select" id="selectFrom">
               <option selected="selected" value="0">Autre langue...</option>
               ${tabsInSelect}
             </select>
@@ -688,13 +757,13 @@ view = {
       }
       pageNum[i] = `<option ${pageSelect} value="${(i+1)*3}">${(i+1)*3}</option>`;
     }
-    console.log(model.pagination.numOfPages);
+
     for (var i = 0; i < model.pagination.numOfPages; i++) {
       pageNumber[i]= `<li class="page-item active">
         <a onclick="actions.changePage({value : ${i}})" class="page-link" >${i+1}</a>
       </li>`
     }
-    console.log(model.pagination.currPage);
+
 
     return`
     <section id="translations">
@@ -703,19 +772,19 @@ view = {
         <div class="table-responsive">
           <table class="col-12 table table-sm table-bordered">
             <thead>
-              <th class="align-middle text-center col-1">
+              <th onclick="actions.classTrads({colonne : 0})" class="align-middle text-center col-1">
                 <a href="#">N°</a>
               </th>
-              <th class="align-middle text-center col-1">
+              <th onclick="actions.classTrads({colonne : 1})" class="align-middle text-center col-1">
                 <a href="#">Depuis</a>
               </th>
-              <th class="align-middle text-center ">
+              <th onclick="actions.classTrads({colonne : 2})" class="align-middle text-center ">
                 <a href="#">Expression</a>
               </th>
-              <th class="align-middle text-center col-1">
+              <th onclick="actions.classTrads({colonne : 3})" class="align-middle text-center col-1">
                 <a href="#">Vers</a>
               </th>
-              <th class="align-middle text-center ">
+              <th onclick="actions.classTrads({colonne : 4})" class="align-middle text-center ">
                 <a href="#">Traduction</a>
               </th>
               <th class="align-middle text-center col-1">
