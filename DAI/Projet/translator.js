@@ -11,8 +11,6 @@ let actions, model, state, view;
 function go() {
   console.log('GO !');
 
-  sandbox();
-
   const data = {
     authors: 'Romain DASPET et Karol VONTOLKACZ',
     languagesSrc: ['fr', 'en', 'es'],
@@ -25,25 +23,6 @@ function go() {
   actions.initAndGo(data);
   actions.tabsUpdate(model);
 
-}
-
-//-------------------------------------------------------------------- Tests ---
-
-function sandbox() {
-  function action_display(data) {
-    // console.log(data);
-    if (!data.error) {
-      const language = languages[data.languageDst].toLowerCase();
-      console.log(`'${data.expression}' s'écrit '${data.translatedExpr}' en ${language}`);
-    } else {
-      console.log('Service de traduction indisponible...');
-    }
-  }
-
-  const expr = 'asperge';
-  const langSrc = 'en';
-  const langDst = 'fr';
-  googleTranslation(expr, langSrc, langDst, action_display );
 }
 
 //------------------------------------------------------------------ Données ---
@@ -100,7 +79,6 @@ actions = {
     });
   }
   values.sort((a,b)=>b.occ-a.occ);
-  console.table(values);
     data.samPresent({
       do:'makeTabs',
       values : values,
@@ -138,16 +116,11 @@ actions = {
     },
 
     switchLang(){
-      if ((model.request.languagesDst.indexOf(model.request.langSrc) != -1) & (model.request.languagesSrc.indexOf(model.request.langDst) != -1)) {
         model.samPresent({
           do:'switchLang',
           switchedLangSrc : model.request.langDst,
           switchedLangDst : model.request.langSrc
           });
-      }else {
-        console.log("switch impossible !");
-      }
-
     },
 
     addTranslation(data){
@@ -252,7 +225,6 @@ actions = {
     },
 
     tabClicked(data){
-      console.log(data);
       let lang;
       if (data.text.length == 0) {
         lang = state.tabs.tabsInSelect[data.index].language;
@@ -280,11 +252,6 @@ actions = {
         tabsIn[0] = aux;
 
       }
-
-      console.log(tabsIn);
-      console.log(tabsInSelect);
-      console.log(lang);
-      console.log(values);
       state.samPresent({
 
 
@@ -411,7 +378,6 @@ model = {
         this.tabs.tabsInSelect = data.tabsInSelect;
         state.tabs.tabsIn = data.tabsIn;
         state.tabs.tabsInSelect = data.tabsInSelect;
-        console.log(state.tabs.tabsInSelect[0].language);
         break;
 
       case 'changelangDst':
@@ -482,8 +448,6 @@ model = {
       case 'classTrads':
         this.sorted.values = data.sortedValues;
         this.sorted.isOn = !this.sorted.isOn;
-        console.log(this.sorted.isOn);
-        console.log(this.sorted.values);
         break;
 
 
@@ -576,7 +540,6 @@ state = {
     //       ou qu'on affiche les onglets par langue...
 
     representation = view.generateUI(model, this, representation);
-    console.log("currPage",model.pagination.currPage);
     view.samDisplay(model.app.sectionId, representation);
   },
 };
@@ -630,8 +593,6 @@ view = {
         active = "";
       }
 
-      console.log("active : ",active);
-      console.log("activTrad",activTrad);
       tabsIn[i]=`<li title="${data.tabs.tabsIn[i].language}" onclick="actions.tabClicked({index : ${i}, text : title})" class="nav-item">
         <a class="nav-link ${active}" href="#">${data.tabs.tabsIn[i].language}
           <span class="badge badge-primary">${data.tabs.tabsIn[i].occ}</span>
@@ -744,7 +705,6 @@ view = {
     }else {
       values = data.translations.values;
     }
-    console.log(values);
     for (let i = 0; i < values.length; i++) {
       if (values[i][1] == 'ar') {
         text1 = 'class="text-right"'
@@ -813,8 +773,6 @@ view = {
         <a onclick="actions.changePage({value : ${i}})" class="page-link" >${i+1}</a>
       </li>`
     }
-    console.log(model.pagination.currPage+1);
-    console.log(model.pagination.numOfPages);
     if ((model.pagination.currPage+1==model.pagination.numOfPages) && (model.pagination.currPage+1==1)) {
       precDis = "disabled";suivDis = "disabled";
     }else if(model.pagination.currPage+1==1){
@@ -829,10 +787,6 @@ view = {
     }else {
       color = 'ternary';
     }
-    console.log(precDis);
-    console.log(suivDis);
-    console.log(model.marked.indexs);
-    console.log(translations);
 
     return`
     <section id="translations">
