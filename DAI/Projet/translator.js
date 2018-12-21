@@ -67,6 +67,7 @@ const languages = {
 actions = {
 
   initAndGo(data) {
+
     model.samPresent({
       do:'init',
       authors: data.authors,
@@ -74,8 +75,8 @@ actions = {
       langDst: data.langDst,
       languagesSrc: data.languagesSrc,
       languagesDst: data.languagesDst,
-      translations: data.translations,
-      tradPerP : 3,
+      translations: data.translations.map((v,i,a)=>[i,v[0],v[1],v[2],v[3]]),
+      tradPerP : 9,
       currPage : 0,
     });
   },
@@ -84,7 +85,7 @@ actions = {
   let values = [], tab = [];
   for (let i = 0; i < data.translations.values.length; i++) {
     data.translations.values[i].forEach( (v,j,a)=>{
-      if ((j%2 == 0)) {
+      if ((j%2 != 0)) {
         if((!tab.includes(v))) {
           tab.push(v);
           values.push({language : languages[v],occ : 1})
@@ -140,7 +141,7 @@ actions = {
         const language = languages[data.languageDst].toLowerCase();
         model.samPresent({
           do: 'addTranslation',
-          newTranslation : [data.languageSrc,data.expression,data.languageDst,data.translatedExpr]
+          newTranslation : [model.translations.values.length,data.languageSrc,data.expression,data.languageDst,data.translatedExpr]
         });
       } else {
         console.log('Service de traduction indisponible...');
@@ -291,7 +292,7 @@ actions = {
     },
 
     classTrads(data){
-      let sortedValues = model.translations.values.map(function(v,i,a){return { index: i, value: v[data.colonne-1].toLowerCase()}});
+      let sortedValues = model.translations.values.map(function(v,i,a){return { index: i, value: v[data.colonne].toLowerCase()}});
       sortedValues.sort(function(a, b) {
         switch (a.value > b.value) {
           case true : return 1; break;
@@ -449,9 +450,10 @@ model = {
         break;
 
       case 'classTrads':
-        this.translations.values = data.sortedValues;
+        this.sorted.values = data.sortedValues;
         this.sorted.isOn = !this.sorted.isOn;
         console.log(this.sorted.isOn);
+        console.log(this.sorted.values);
         break;
 
 
@@ -542,7 +544,7 @@ state = {
     //       ou qu'on affiche les onglets par langue...
 
     representation = view.generateUI(model, this, representation);
-
+    console.log("currPage",model.pagination.currPage);
     view.samDisplay(model.app.sectionId, representation);
   },
 };
@@ -700,15 +702,21 @@ view = {
   },
 
   transGeneration(data){
-    let translations=[],text1,text2,checked,finalTranslations=[];
-    for (let i = 0; i < data.translations.values.length; i++) {
-      if (data.translations.values[i][0] == 'ar') {
+    let translations=[],text1,text2,checked,finalTranslations=[],values=[];
+    if (model.sorted.isOn) {
+      values = model.sorted.values;
+    }else {
+      values = data.translations.values;
+    }
+    console.log(values);
+    for (let i = 0; i < values.length; i++) {
+      if (values[i][1] == 'ar') {
         text1 = 'class="text-right"'
       }else {
         text1 = 'class="text-left"'
       }
 
-      if (model.translations.values[i][2] == 'ar') {
+      if (values[i][3] == 'ar') {
         text2 = 'class="text-right"'
       }else {
         text2 = 'class="text-left"'
@@ -720,15 +728,15 @@ view = {
       }
 
       translations[i] = `<tr>
-        <td class="text-center text-secondary"> ${i} </td>
+        <td class="text-center text-secondary"> ${values[i][0]} </td>
         <td class="text-center">
-          <span class="badge badge-info">${data.translations.values[i][0]}</span>
+          <span class="badge badge-info">${values[i][1]}</span>
         </td>
-        <td ${text1}>${data.translations.values[i][1].toLowerCase()}</td>
+        <td ${text1}>${values[i][2].toLowerCase()}</td>
         <td class="text-center">
-          <span class="badge badge-info">${data.translations.values[i][2]}</span>
+          <span class="badge badge-info">${values[i][3]}</span>
         </td>
-        <td ${text2}>${data.translations.values[i][3].toLowerCase()}</td>
+        <td ${text2}>${values[i][4].toLowerCase()}</td>
         <td class="text-center">
           <div class="form-check">
             <input onclick="actions.markLine({index : ${i}, checked : checked})" type="checkbox" class="form-check-input" ${checked}/>
