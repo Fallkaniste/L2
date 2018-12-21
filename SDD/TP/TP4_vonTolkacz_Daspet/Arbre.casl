@@ -1,0 +1,54 @@
+
+library libraryArbreForet
+from Basic/Numbers get Int
+spec ARBRE0[sort Elem] given Int =
+generated types
+Foret[Arbre[Elem]]
+::= foretVide | planter(Arbre[Elem]; Int; Foret[Arbre[Elem]]);
+Arbre[Elem]
+::= arbreVide
+| c
+onstruire(racine :? Elem; listeSousArbres :? Foret[Arbre[Elem]])
+end
+spec ARBRE[sort Elem] =
+ARBRE0[sort Elem]
+then preds estArbreVide : Arbre[Elem];
+estForetVide : Foret[Arbre[Elem]]
+ops   racine : Arbre[Elem]
+-
+>? Elem;
+listeSousArbres : Arbre[Elem]
+-
+>? Foret[Arbre[Elem]];
+nombreArbres : Foret[Arbre[Elem]]
+-
+> Int;
+iemeArbre : Foret[Arbre[Elem]] * Int
+-
+>? Arbre[Elem]
+forall A1 : Arbre[Elem]; F1 : Foret[Arbre[Elem]]; i1, k1 : Int;
+e1 : Elem
+. def racine(A1) <=> not estArbreVide(A1)
+. def listeSousArbres(A1) <=> not estArbreVide(A1)
+. def iemeArbre(F1, i1) <=> not i1 > 0 /
+\
+i1 < nombreArbres(F1) + 1
+. estArbreVide(arbreVide)
+. not estArbreVide(construire(e1, F1))
+.
+estForetVide(foretVide)
+. not estForetVide(planter(A1, i1, F1))
+. racine(construire(e1, F1)) = e1
+. listeSousArbres(construire(e1, F1)) = F1
+. nombreArbres(foretVide) = 0
+. nombreArbres(planter(A1, i1, F1)) = nombreArbres(F1) + 1
+. i1 = k1 => iemeArbre(planter(A1, i1, F1), k1) = A1
+. 0 < k1 /
+\
+k1 < i1
+=> iemeArbre(planter(A1, i1, F1), k1) = iemeArbre(F1, k1)
+. i1 < k1 /
+\
+k1 < nombreArbres(F1) + 2
+=> iemeArbre(planter(A1, i1, F1), k1) = iemeArbre(F1, k1)
+end

@@ -305,6 +305,12 @@ actions = {
       });
     },
   // TODO: Ajouter les autres actions...
+  // -bonton a propos
+  // -griser les boutons switch et Traduire
+  // -nbpage a 9
+  // -suiv et prec
+  // -colonnes
+  // -suppr change de couleur
 };
 
 //-------------------------------------------------------------------- Model ---
