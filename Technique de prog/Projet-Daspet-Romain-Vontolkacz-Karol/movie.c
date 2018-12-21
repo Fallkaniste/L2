@@ -20,7 +20,7 @@ void movie_handle_mv(movie_t movie){
 }
 
 void movie_handle_mvn(movie_t movie, const char *name){
-  if ((strcmp(movie.name,name)==0)) {
+  if ((strstr(movie.name,name)==movie.name)) {
     printf("%s (%d), %.2f EUR\n",movie.name, movie.year, movie.price);
   }
 

@@ -7,10 +7,11 @@
 #include <libxml/parser.h>
 #include "vrs.h"
 #include "movie.h"
-int i,j;
+int i,j,k;
 
 void split(char* saisie,char* arg,char* command){
   int split = 0;
+
   for (i = 0; i < strlen(saisie); i++) {
     if (saisie[i] == ' ') {
       split = 1;
@@ -23,6 +24,9 @@ void split(char* saisie,char* arg,char* command){
         command[i] = saisie[i];
         i++;
     } while(saisie[i] != ' ');
+    for (k = i; k < strlen(command); k++) {
+      command[k]=0;
+    }
     i++;
 
     for (j = 0; i < strlen(saisie)-1; j++) {
@@ -139,51 +143,40 @@ int main(int argc, char *argv[]) {
     split(saisie,arg,command);
     if ((strcmp(saisie,"addr") == 10)) {
       vrs_handle_addr(*vrs);
-    }
-    if ((strcmp(command,"help") == 10)) {
-      print_help();
-    }
-    if ((strcmp(command,"mv") == 10)) {
-      vrs_handle_mv(*vrs);
-    }
-    if ((strcmp(command,"mvn") == 0)) {
-      vrs_handle_mvn(*vrs,arg);
-    }
-    if ((strcmp(command,"mvp") == 0)) {
-      vrs_handle_mvp(*vrs,(float)strtod(arg,&p_conv));
-    }
-    if ((strcmp(command,"mvpge") == 0)) {
-      vrs_handle_mvpge(*vrs,(float)strtod(arg,&p_conv));
-    }
-    if ((strcmp(command,"mvpgt") == 0)) {
-      vrs_handle_mvpgt(*vrs,(float)strtod(arg,&p_conv));
-    }
-    if ((strcmp(command,"mvple") == 0)) {
-      vrs_handle_mvple(*vrs,(float)strtod(arg,&p_conv));
-    }
-    if ((strcmp(command,"mvplt") == 0)) {
-      vrs_handle_mvplt(*vrs,(float)strtod(arg,&p_conv));
-    }
-    if ((strcmp(command,"mvy") == 0)) {
-      vrs_handle_mvy(*vrs,(int)strtol(arg,&p_conv,10));
-    }
-    if ((strcmp(command,"mvyge") == 0)) {
-      vrs_handle_mvyge(*vrs,(int)strtol(arg,&p_conv,10));
-    }
-    if ((strcmp(command,"mvygt") == 0)) {
-      vrs_handle_mvygt(*vrs,(int)strtol(arg,&p_conv,10));
-    }
-    if ((strcmp(command,"mvyle") == 0)) {
-      vrs_handle_mvyle(*vrs,(int)strtol(arg,&p_conv,10));
-    }
-    if ((strcmp(command,"mvylt") == 0)) {
-      vrs_handle_mvylt(*vrs,(int)strtol(arg,&p_conv,10));
-    }
-    if ((strcmp(command,"version") == 10)) {
-      printf("VRSP (Video Rental Shop Program) 20181210\n\n");
-      printf("Copyright (C) 2018 Daspet Romain and Vontolkacz Karol.\n\n");
-      printf("Written by Daspet Romain <daspet.romain@univ-pau.fr> and Vontolkacz Karol <vontolkacz.karol@univ-pau.fr>.\n");
-    }
+    }else     if ((strcmp(command,"help") == 10)) {
+          print_help();
+        }else     if ((strcmp(command,"mv") == 10)) {
+              vrs_handle_mv(*vrs);
+            }else    if ((strcmp(command,"mvn") == 0)) {
+                  vrs_handle_mvn(*vrs,arg);
+                }else    if ((strcmp(command,"mvp") == 0)) {
+                      vrs_handle_mvp(*vrs,(float)strtod(arg,&p_conv));
+                    }else    if ((strcmp(command,"mvpge") == 0)) {
+                          vrs_handle_mvpge(*vrs,(float)strtod(arg,&p_conv));
+                        }else    if ((strcmp(command,"mvpgt") == 0)) {
+                              vrs_handle_mvpgt(*vrs,(float)strtod(arg,&p_conv));
+                            }else    if ((strcmp(command,"mvple") == 0)) {
+                                  vrs_handle_mvple(*vrs,(float)strtod(arg,&p_conv));
+                                }else    if ((strcmp(command,"mvplt") == 0)) {
+                                      vrs_handle_mvplt(*vrs,(float)strtod(arg,&p_conv));
+                                    }else    if ((strcmp(command,"mvy") == 0)) {
+                                          vrs_handle_mvy(*vrs,(int)strtol(arg,&p_conv,10));
+                                        }else    if ((strcmp(command,"mvyge") == 0)) {
+                                              vrs_handle_mvyge(*vrs,(int)strtol(arg,&p_conv,10));
+                                            }else    if ((strcmp(command,"mvygt") == 0)) {
+                                                  vrs_handle_mvygt(*vrs,(int)strtol(arg,&p_conv,10));
+                                                }else    if ((strcmp(command,"mvyle") == 0)) {
+                                                      vrs_handle_mvyle(*vrs,(int)strtol(arg,&p_conv,10));
+                                                    }else    if ((strcmp(command,"mvylt") == 0)) {
+                                                          vrs_handle_mvylt(*vrs,(int)strtol(arg,&p_conv,10));
+                                                        }else    if ((strcmp(command,"version") == 10)) {
+                                                              printf("VRSP (Video Rental Shop Program) 20181210\n\n");
+                                                              printf("Copyright (C) 2018 Daspet Romain and Vontolkacz Karol.\n\n");
+                                                              printf("Written by Daspet Romain <daspet.romain@univ-pau.fr> and Vontolkacz Karol <vontolkacz.karol@univ-pau.fr>.\n");
+                                                            }else if((strcmp(command,"quit")!= 10)){
+                                                              fprintf(stderr, "%s Invalid command\n",argv[0]);
+                                                            }
+
 
   }
   free(arg);
